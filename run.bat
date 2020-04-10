@@ -1,0 +1,1 @@
+c:/cygwin64/bin/mintty /usr/bin/bash ./run.sh
