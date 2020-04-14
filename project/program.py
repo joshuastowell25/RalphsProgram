@@ -1,4 +1,8 @@
+#!/usr/bin/env python
 import os, sys, traceback
+import settings          #the GOOD way to import from a file
+#from settings import *  #The BAD way to import from a file
+
 
 def enum(**named_values):
     return type('Enum', (), named_values)
@@ -9,8 +13,9 @@ MaTypes = enum(RalphStyle = 1, NormalStyle = 2)
 maType = MaTypes.RalphStyle # the default desired moving average type
 
 #gets the users desired moving average type
-def getMaType():
-    ans = input("What type of moving average? (r for RalphStyle, n for NormalStyle)  ")
+def getMaType(ans = None): #ans defaults to None
+    if ans is None:
+        ans = input("What type of moving average? (r for RalphStyle, n for NormalStyle)  ")
     mtype = MaTypes.RalphStyle
     
     if ans == 'r':
@@ -18,7 +23,7 @@ def getMaType():
     elif ans == 'n':
         mtype = MaTypes.NormalStyle
     else:
-        print ("BAD INPUT! Try Again")
+        print ("Bad moving average type input! Try Again")
         return getMaType()
     print ("\n")
     
@@ -45,7 +50,7 @@ def getSysNumbers(sys):
     system = []
     val = 0
     while val != 'q':
-        val = input("Enter numbers for system "+str(chr(sys+65)).lower()+"? (q to finish) ") #65 is ascii A
+        val = input("Enter numbers for system "+str(chr(sys+65)).lower()+" (q to finish) ") #65 is ascii A
         if val != 'q':
             try:
                 system.append(int(val))
@@ -87,9 +92,9 @@ def getConfirmationIndexes():
     return [teamA, teamB]
 
 #gets an array of data from a particular file
-def getData(filename = None):
+def getData(filename = None): #filename defaults to None
     if filename is None:
-        filename = input("what data file do you want to use? \n")
+        filename = input("What data file do you want to use? \n")
     filename = filename.upper()
     filename += ".DAT"
     file_handle = open("./data/"+filename, 'r')
@@ -372,12 +377,12 @@ def clearTerminal():
     
 def main(data):
     global maType
-    maType = getMaType() #gets and sets the global moving average type
+    maType = getMaType(settings.defaultMaType) #gets and sets the global moving average type
     systems = getSystems()
     syscols = calcSysCols(systems, data)
 
     count = 0
-    doVersus = 'y'
+    doVersus = settings.doVersusDefault
     versusSystems = []
     while doVersus == 'y' or doVersus != 'n':
         if doVersus != 'y' and doVersus != 'n':
@@ -393,7 +398,7 @@ def main(data):
             count += 1
             
     count = 0
-    doConfirmation = 'y'
+    doConfirmation = settings.doConfirmationDefault
     confirmationSystems = []
     while doConfirmation == 'y' or doConfirmation != 'n':
         if doConfirmation != 'y' and doConfirmation != 'n':
@@ -419,7 +424,7 @@ def main(data):
         command = input("commands: 6=page, c=change_data, g=grand_totals, q=quit, r=restart ")
         if command == 'q':
             return
-        elif command == 'c':
+        elif command == 'c': #Change data
             clearTerminal()
             data = getData()
             clearTerminal()
@@ -436,17 +441,18 @@ def main(data):
         elif command == '6':
             currentLine = int(input("What increment do you want to go to? (q to exit) "))
             printCols(data, syscols, currentLine)
-        elif command == 'r':
+        elif command == 'r': #Restart
             clearTerminal()
-            data = getData()
+            data = getData(settings.defaultDataFile)
             clearTerminal()
             main(data)
-        elif command == 'g':
+        elif command == 'g': #Grand Totals
             printCols(data, syscols, currentLine)
             stats = getStats(data, syscols)
             printStats(stats)
+
 try:
-    data = getData()
+    data = getData(settings.defaultDataFile)
     main(data)
 except Exception as e:
     exc_type, exc_obj, exc_tb = sys.exc_info()
