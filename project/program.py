@@ -412,8 +412,9 @@ def main(data):
             print ("\'"+str(chr(indexes[0]+65)).lower()+" confirming "+str(chr(indexes[1]+65)).lower()+"\' was placed in column "+str(chr(len(syscols)+65)).lower()+"\n\n")
             syscols.append(confcol)   
             count += 1
-            
-    input("\nPress Enter to view columns...\n")
+
+    if(settings.immediateResults == False):      
+        input("\nPress Enter to view columns...\n")
     currentLine = len(data)-47
     printCols(data, syscols, currentLine)
     stats = getStats(data, syscols)
