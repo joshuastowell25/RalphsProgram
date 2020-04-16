@@ -422,7 +422,7 @@ def main(data):
     
     command = 0
     while command != 'q':
-        command = input("commands: 6=page, c=change_data, g=grand_totals, q=quit, r=restart ")
+        command = input("commands: 6=page, c=change_data, g=grand_totals, q=quit, r=restart, s=system ")
         if command == 'q':
             return
         elif command == 'c': #Change data
@@ -447,6 +447,8 @@ def main(data):
             data = getData(settings.defaultDataFile)
             clearTerminal()
             main(data)
+        elif command == 's':
+            printSystems(systems)
         elif command == 'g': #Grand Totals
             printCols(data, syscols, currentLine)
             stats = getStats(data, syscols)
