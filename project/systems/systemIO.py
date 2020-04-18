@@ -30,3 +30,6 @@ def enterSystemsMenu():
             return
         elif command == 'v':
             listSavedSystems()
+            
+def testImport():
+    print('import worked')

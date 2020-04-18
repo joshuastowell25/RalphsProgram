@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 import os, sys, traceback
+import systems as sys
+
 import settings          #the GOOD way to import from a file
 #from settings import *  #The BAD way to import from a file
-
 
 def enum(**named_values):
     return type('Enum', (), named_values)
@@ -26,7 +27,7 @@ def getMaType(ans = None): #ans defaults to None
         print ("Bad moving average type input! Try Again")
         return getMaType()
     print ("\n")
-    
+       
     return mtype
 
 #asks the user how many number systems they want
@@ -448,7 +449,7 @@ def main(data):
             clearTerminal()
             main(data)
         elif command == 's':
-            printSystems(systems)
+            sys.printSystems(systems)
         elif command == 'g': #Grand Totals
             printCols(data, syscols, currentLine)
             stats = getStats(data, syscols)
