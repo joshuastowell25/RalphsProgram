@@ -4,4 +4,4 @@
 __all__ = ["systemIO"] # controls what 'from systems import *' does
 
 #control what 'import systems' actually does. 
-from .systemIO import printSystems #now you can call systems.printSystems
+from .systemIO import printSystems, getSystems, enterSystemsMenu #now you can call systems.printSystems

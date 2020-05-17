@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 import os, sys, traceback
 import systems as sys
-
-import settings          #the GOOD way to import from a file
-#from settings import *  #The BAD way to import from a file
+import shutil               #shell utils to get the terminal height
+import settings             #the GOOD way to import from a file
+#from settings import *     #The BAD way to import from a file
 
 def enum(**named_values):
     return type('Enum', (), named_values)
 
-#now you can use MaTypes.RalphStyle and MaTypes.NormalStyle
+#MaTypes.RalphStyle and MaTypes.NormalStyle
 MaTypes = enum(RalphStyle = 1, NormalStyle = 2)
 
 maType = MaTypes.RalphStyle # the default desired moving average type
+
+def screenHeight():
+    return shutil.get_terminal_size().lines
 
 #gets the users desired moving average type
 def getMaType(ans = None): #ans defaults to None
@@ -29,36 +32,6 @@ def getMaType(ans = None): #ans defaults to None
     print ("\n")
        
     return mtype
-
-#asks the user how many number systems they want
-def getSystems():
-    systems = []
-    cols = input("How many systems/columns do you want? \n")
-    try:
-        cols = int(cols)
-    except:
-        print ("BAD INPUT!")
-        return getSystems()
-
-    print ("\n")
-    for i in range(int(cols)):
-        systems.append(getSysNumbers(i))
-
-    return systems
-
-#asks the user what numbers they want in a particular system
-def getSysNumbers(sys):
-    system = []
-    val = 0
-    while val != 'q':
-        val = input("Enter numbers for system "+str(chr(sys+65)).lower()+" (q to finish) ") #65 is ascii A
-        if val != 'q':
-            try:
-                system.append(int(val))
-            except:
-                print ("BAD INPUT!")
-    print ("\n" )
-    return system
 
 #gets the indexes for which to run a versus system on
 def getVsIndexes():
@@ -180,20 +153,22 @@ def printCol(col):
     for i in range(len(col)):
         print ("inc "+str(i+1)+": "+str(col[i]))
 
+#prints all of the data and columns, starting at a particular increment if given
 def printCols(data, cols, startInc = None):
     datastring = ""
     if startInc is None:
         for i in range(len(cols[0])):
             for j in range(len(cols)):
                 datastring += "{0:10d}".format(cols[j][i])
-            print ("inc"+str(i+1)+", price="+str(data[i]).ljust(10)+datastring)
+            
+            print ("inc"+str(i+1)+", price="+str(data[i]/100).ljust(10)+datastring)
             datastring = ""
     else:
-        for i in range(startInc-1,startInc-1+48):
+        for i in range(startInc - 1, startInc + screenHeight()):
             if i < len(cols[0]):
                 for j in range(len(cols)):
                     datastring += "{0:10d}".format(cols[j][i])
-                print ("inc"+str(i+1)+", price="+str(data[i]).ljust(10)+datastring)
+                print ("inc"+str(i+1)+", price="+str(data[i]/100).ljust(10)+datastring)
                 datastring = ""
 
 #given the system columns and teamA,teamB of vsIndexes, calculates a vs column
@@ -375,11 +350,19 @@ def getColStats(data, syscols, sysindex):
 def clearTerminal():
     import os
     os.system('cls' if os.name == 'nt' else 'clear')    
+
+def isValidDecimal(input):
+    try:
+        float(input)
+    except ValueError:
+        return False
+    else:
+        return True
     
 def main(data):
     global maType
     maType = getMaType(settings.defaultMaType) #gets and sets the global moving average type
-    systems = getSystems()
+    systems = sys.getSystems()
     syscols = calcSysCols(systems, data)
 
     count = 0
@@ -416,17 +399,17 @@ def main(data):
 
     if(settings.immediateResults == False):      
         input("\nPress Enter to view columns...\n")
-    currentLine = len(data)-47
+    currentLine = len(data)-screenHeight()
     printCols(data, syscols, currentLine)
     stats = getStats(data, syscols)
     printStats(stats)
     
     command = 0
     while command != 'q':
-        command = input("commands: 6=page, c=change_data, g=grand_totals, q=quit, r=restart, s=system ")
+        command = input("commands: 6=page, c=change company, a=add data, g=grand_totals, q=quit, r=restart, s=systems menu ")
         if command == 'q':
             return
-        elif command == 'c': #Change data
+        elif command == 'c':
             clearTerminal()
             data = getData()
             clearTerminal()
@@ -440,8 +423,36 @@ def main(data):
             printCols(data, syscols, currentLine)
             stats = getStats(data, syscols)
             printStats(stats)
+        elif command == 'a':
+            while(True):
+                datum = input("What is the price for new increment "+str(len(data)+1)+"? q to finish.\n")
+                if(datum == "q"):
+                    break
+                elif(isValidDecimal(datum) != True):
+                    input("Bad input! Press Enter to try Again")
+                else:
+                    data.append(int(float(datum) * 100))
+            
+            clearTerminal()
+            syscols = calcSysCols(systems, data)
+            for indexes in versusSystems:
+                vscol = calcVsCol(syscols, indexes)
+                syscols.append(vscol)
+            for indexes in confirmationSystems:
+                confcol = calcConfCol(syscols, indexes)
+                syscols.append(confcol)
+            currentLine = len(data)-screenHeight()
+            printCols(data, syscols, currentLine)
+            stats = getStats(data, syscols)
+            printStats(stats)
+
         elif command == '6':
-            currentLine = int(input("What increment do you want to go to? (q to exit) "))
+            whichInc = input("What increment do you want to go to? (q to exit, e for end increment) ")
+            if(whichInc == "e"):
+                currentLine = len(data) - screenHeight()
+            else:
+                currentLine = int(whichInc) - screenHeight()
+
             printCols(data, syscols, currentLine)
         elif command == 'r': #Restart
             clearTerminal()
@@ -449,7 +460,7 @@ def main(data):
             clearTerminal()
             main(data)
         elif command == 's':
-            sys.printSystems(systems)
+            sys.enterSystemsMenu(systems)
         elif command == 'g': #Grand Totals
             printCols(data, syscols, currentLine)
             stats = getStats(data, syscols)
