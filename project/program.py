@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os, sys, traceback
 import systems as sys
+import data as dataIO
 import shutil               #shell utils to get the terminal height
 import settings             #the GOOD way to import from a file
 #from settings import *     #The BAD way to import from a file
@@ -13,6 +14,7 @@ MaTypes = enum(RalphStyle = 1, NormalStyle = 2)
 
 maType = MaTypes.RalphStyle # the default desired moving average type
 
+#gets the number of lines in the terminal
 def screenHeight():
     return shutil.get_terminal_size().lines
 
@@ -64,20 +66,6 @@ def getConfirmationIndexes():
         print ("BAD INPUT!\n")
         return getConfirmationIndexes()
     return [teamA, teamB]
-
-#gets an array of data from a particular file
-def getData(filename = None): #filename defaults to None
-    if filename is None:
-        filename = input("What data file do you want to use? \n")
-    filename = filename.upper()
-    filename += ".DAT"
-    file_handle = open("./data/"+filename, 'r')
-    lines_list = file_handle.readlines()
-    data = []
-    for line in lines_list:
-        data.append(int(float(line) * 100))
-    print ("\n")
-    return data
 
 #returns a collection of columns for each system
 def calcSysCols(systems, data):
@@ -359,7 +347,7 @@ def isValidDecimal(input):
     else:
         return True
     
-def main(data):
+def main(data, filename):
     global maType
     maType = getMaType(settings.defaultMaType) #gets and sets the global moving average type
     systems = sys.getSystems()
@@ -411,7 +399,7 @@ def main(data):
             return
         elif command == 'c':
             clearTerminal()
-            data = getData()
+            data, filename = dataIO.getData()
             clearTerminal()
             syscols = calcSysCols(systems, data)
             for indexes in versusSystems:
@@ -431,7 +419,7 @@ def main(data):
                 elif(isValidDecimal(datum) != True):
                     input("Bad input! Press Enter to try Again")
                 else:
-                    data.append(int(float(datum) * 100))
+                    dataIO.append(int(float(datum) * 100))
             
             clearTerminal()
             syscols = calcSysCols(systems, data)
@@ -445,6 +433,7 @@ def main(data):
             printCols(data, syscols, currentLine)
             stats = getStats(data, syscols)
             printStats(stats)
+            dataIO.saveData(data, filename)
 
         elif command == '6':
             whichInc = input("What increment do you want to go to? (q to exit, e for end increment) ")
@@ -456,19 +445,22 @@ def main(data):
             printCols(data, syscols, currentLine)
         elif command == 'r': #Restart
             clearTerminal()
-            data = getData(settings.defaultDataFile)
+            data, filename = dataIO.getData(settings.defaultDataFile)
             clearTerminal()
-            main(data)
+            main(data, filename)
         elif command == 's':
             sys.enterSystemsMenu(systems)
+            #now they've returned
+            printCols(data, syscols, currentLine)
+            printStats(stats)
         elif command == 'g': #Grand Totals
             printCols(data, syscols, currentLine)
             stats = getStats(data, syscols)
             printStats(stats)
 
 try:
-    data = getData(settings.defaultDataFile)
-    main(data)
+    data, filename = dataIO.getData(settings.defaultDataFile)
+    main(data, filename)
 except Exception as e:
     exc_type, exc_obj, exc_tb = sys.exc_info()
     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]

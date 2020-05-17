@@ -4,20 +4,28 @@ import json
 #To import this file in python do: from systems import systemIO
 #Then you can do things like: systemIO.theFuncName()
 
-#print the users system(s)
+#print the users system(s) that are currently entered
 def printSystems(systems):
     for system in systems:
         print(system)
 
-#Lists the names of the saved systems so the user select one to open
+#Lists the names of the saved systems so the user can select one to open
 def listSavedSystems():
     import os
     index = 0
-    arr_txt = [x.replace(".sys", "") for x in os.listdir(SAVED_SETUPS_PATH) if x.endswith(".sys")]
-    for item in arr_txt:
+    files = os.listdir(SAVED_SETUPS_PATH)
+    for filename in files:
         index = index + 1
-        print(index," ", item)
+        print(index," ", filename)
+        printSavedSys(filename)
 
+#prints the saved divisors in the given sys file
+def printSavedSys(filename):
+    import os
+    file_handle = open(os.path.join(SAVED_SETUPS_PATH, filename), 'r')
+    lines_list = file_handle.readlines()
+    for line in lines_list:
+        print(line)
 
 def clearTerminal():
     import os
