@@ -191,52 +191,59 @@ stat = {
     'winCount': 2,
     'lossCount': 3,
     'maxWin': 4,
-    'maxLoss': 5
+    'maxLoss': 5,
+    'runningGt': 6,
+    'runningWins': 7,
+    'runningLosses': 8,
+    'runningTies': 9,
+    'runningTrades': 10,
+    'runningMaxWin': 11,
+    'runningMaxLoss': 12
 }    
     
-def printStats(stats):
+def printStats(stats, index):
     print("\n")
     banner = str("GRAND TOTAL:").ljust(26)
     for i in range(len(stats)):
-        banner += str(stats[i][stat['gt']]/100).rjust(10) #data is adjusted prior to this to have pennies to the left of the decimal, move them back right by dividing by 100
+        banner += str(stats[i][stat['runningGt']][index]/100).rjust(10) #data is adjusted prior to this to have pennies to the left of the decimal, move them back right by dividing by 100
     print(banner)
     
     banner = str("TRADE COUNT:").ljust(26)
     for i in range(len(stats)):
-        banner += str(stats[i][stat['trades']]).rjust(10)
+        banner += str(stats[i][stat['runningTrades']][index]).rjust(10)
     print(banner)
     
     banner = str("WIN COUNT:").ljust(26)
     for i in range(len(stats)):
-        banner += str(stats[i][stat['winCount']]).rjust(10)
+        banner += str(stats[i][stat['runningWins']][index]).rjust(10)
     print(banner)
     
     banner = str("LOSS COUNT:").ljust(26)
     for i in range(len(stats)):
-        banner += str(stats[i][stat['lossCount']]).rjust(10)
+        banner += str(stats[i][stat['runningLosses']][index]).rjust(10)
     print(banner)
 
     banner = str("MAX WIN:").ljust(26)
     for i in range(len(stats)):
-        banner += str(stats[i][stat['maxWin']]).rjust(10)
+        banner += str(stats[i][stat['runningMaxWin']][index]).rjust(10)
     print(banner)
     
     banner = str("MAX LOSS:").ljust(26)
     for i in range(len(stats)):
-        banner += str(stats[i][stat['maxLoss']]).rjust(10)
+        banner += str(stats[i][stat['runningMaxLoss']][index]).rjust(10)
     print(banner)    
 	
     banner = str("W/L RATIO:").ljust(26)
     for i in range(len(stats)):
-        winCount = stats[i][stat['winCount']]
-        lossCount = stats[i][stat['lossCount']]
+        winCount = stats[i][stat['runningWins']][index]
+        lossCount = stats[i][stat['runningLosses']][index]
         banner += str(format(float(winCount)/float(lossCount), '.2f')).rjust(10)
     print(banner)
     
     banner = str("L/W RATIO:").ljust(26)
     for i in range(len(stats)):
-        winCount = stats[i][stat['winCount']]
-        lossCount = stats[i][stat['lossCount']]
+        winCount = stats[i][stat['runningWins']][index]
+        lossCount = stats[i][stat['runningLosses']][index]
         banner += str(format(float(lossCount)/float(winCount), '.2f')).rjust(10)
     print(banner)
     
@@ -244,12 +251,19 @@ def printStats(stats):
 def getStats(data, syscols):
     result = []
     for i in range(len(syscols)):
-        result.append(getColStats(data, syscols, i))
+        result.append(getColStats(data, syscols[i]))
     return result
     
 #stats a particular column
-def getColStats(data, syscols, sysindex):
+def getColStats(data, syscol):
     gt = 0
+    runningGt=[]
+    runningWinCount=[]
+    runningLossCount=[]
+    runningTradeCount=[]
+    runningTieCount=[]
+    runningMaxWin=[]
+    runningMaxLoss=[]
     tradeCount = 0
     winCount = 0
     lossCount = 0
@@ -261,10 +275,10 @@ def getColStats(data, syscols, sysindex):
     wins = []
     losses = []
     linestring = ""
-    for i in range(len(syscols[0])):
+    for i in range(len(syscol)):
         price = data[i]
-        linestring +="inc"+str(i+1)+", price="+str(data[i]).ljust(10)+", col: "+str(syscols[sysindex][i])+" "
-        if(syscols[sysindex][i] > 0):
+        linestring +="inc"+str(i+1)+", price="+str(data[i]).ljust(10)+", col: "+str(syscol[i])+" "
+        if(syscol[i] > 0):
             if(position == positions['flat']):
                 position = positions['long']
                 positionPrice = price
@@ -282,7 +296,7 @@ def getColStats(data, syscols, sysindex):
                 position = positions['long']
                 positionPrice = price
                 linestring += "long from short, winloss: "+str(winloss)
-        elif(syscols[sysindex][i] < 0):
+        elif(syscol[i] < 0):
             if(position == positions['flat']):
                 position = positions['short']
                 positionPrice = price
@@ -300,7 +314,7 @@ def getColStats(data, syscols, sysindex):
                 position = positions['short']
                 positionPrice = price
                 linestring += "short from long, winloss: "+str(winloss)
-        elif(syscols[sysindex][i] == 0):
+        elif(syscol[i] == 0):
             if(position == positions['long']):
                 #you've exited a long position
                 winloss = price - positionPrice
@@ -332,8 +346,15 @@ def getColStats(data, syscols, sysindex):
             wins.append(winloss)
         elif(winloss < 0):
             losses.append(winloss)
+        runningGt.append(gt)
+        runningTradeCount.append(tradeCount)
+        runningWinCount.append(winCount)
+        runningLossCount.append(lossCount)
+        runningTieCount.append(tieCount)
+        runningMaxWin.append(max(wins, default=0)/100)
+        runningMaxLoss.append(min(losses, default=0)/100)
 
-    return [gt, tradeCount, winCount, lossCount, max(wins)/100, min(losses)/100] #internal representation of pennies is left of the decimal point
+    return [gt, tradeCount, winCount, lossCount, max(wins, default=0)/100, min(losses, default=0)/100, runningGt, runningWinCount, runningLossCount, runningTieCount, runningTradeCount, runningMaxWin, runningMaxLoss] #internal representation of pennies is left of the decimal point
 
 def clearTerminal():
     import os
@@ -390,7 +411,7 @@ def main(data, filename):
     currentLine = len(data)-screenHeight()
     printCols(data, syscols, currentLine)
     stats = getStats(data, syscols)
-    printStats(stats)
+    printStats(stats, len(data) - 1)
     
     command = 0
     while command != 'q':
@@ -410,7 +431,7 @@ def main(data, filename):
                 syscols.append(confcol)
             printCols(data, syscols, currentLine)
             stats = getStats(data, syscols)
-            printStats(stats)
+            printStats(stats, len(data) - 1)
         elif command == 'a':
             while(True):
                 datum = input("What is the price for new increment "+str(len(data)+1)+"? q to finish.\n")
@@ -432,7 +453,7 @@ def main(data, filename):
             currentLine = len(data)-screenHeight()
             printCols(data, syscols, currentLine)
             stats = getStats(data, syscols)
-            printStats(stats)
+            printStats(stats, len(data) - 1)
             dataIO.saveData(data, filename)
 
         elif command == '6':
@@ -443,6 +464,7 @@ def main(data, filename):
                 currentLine = int(whichInc) - screenHeight()
 
             printCols(data, syscols, currentLine)
+            printStats(stats, int(whichInc) - 1)
         elif command == 'r': #Restart
             clearTerminal()
             data, filename = dataIO.getData(settings.defaultDataFile)
@@ -452,11 +474,11 @@ def main(data, filename):
             sys.enterSystemsMenu(systems)
             #now they've returned
             printCols(data, syscols, currentLine)
-            printStats(stats)
+            printStats(stats, len(data) - 1)
         elif command == 'g': #Grand Totals
             printCols(data, syscols, currentLine)
             stats = getStats(data, syscols)
-            printStats(stats)
+            printStats(stats, len(data) - 1)
 
 try:
     data, filename = dataIO.getData(settings.defaultDataFile)

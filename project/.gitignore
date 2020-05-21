@@ -1,2 +1,3 @@
 floatingHeaders.py
 __pycache__
+*.pyc
