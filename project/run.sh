@@ -1,2 +1,1 @@
-python program.py
-sleep 5
+C:/cygwin/bin/python3.8 program.py

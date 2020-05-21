@@ -440,7 +440,7 @@ def main(data, filename):
                 elif(isValidDecimal(datum) != True):
                     input("Bad input! Press Enter to try Again")
                 else:
-                    dataIO.append(int(float(datum) * 100))
+                    data.append(int(float(datum) * 100))
             
             clearTerminal()
             syscols = calcSysCols(systems, data)
