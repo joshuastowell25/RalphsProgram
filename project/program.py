@@ -460,6 +460,7 @@ def main(data, filename):
             whichInc = input("What increment do you want to go to? (q to exit, e for end increment) ")
             if(whichInc == "e"):
                 currentLine = len(data) - screenHeight()
+                whichInc = len(data)
             else:
                 currentLine = int(whichInc) - screenHeight()
 
