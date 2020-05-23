@@ -457,8 +457,9 @@ def main(data, filename):
             printStats(stats, len(data) - 1)
             dataIO.saveData(data, filename)
         elif command == 'chart':
+            whichSys = int(input("Which system do you want to chart? (e.g. 1, 2, 5, etc) "))
             stats = getStats(data, syscols)
-            runningGt = stats[0][stat['runningGt']]
+            runningGt = stats[whichSys-1][stat['runningGt']]
             charting.chartSystems(runningGt)
         elif command == '6':
             whichInc = input("What increment do you want to go to? (q to exit, e for end increment) ")
