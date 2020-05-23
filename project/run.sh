@@ -1,1 +1,0 @@
-C:/cygwin/bin/python3.8 program.py

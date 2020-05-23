@@ -486,6 +486,7 @@ def main(data, filename):
             printStats(stats, len(data) - 1)
 
 try:
+    clearTerminal()
     data, filename = dataIO.getData(settings.defaultDataFile)
     main(data, filename)
 except Exception as e:
