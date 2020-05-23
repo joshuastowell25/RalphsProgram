@@ -1,4 +1,4 @@
-defaultDataFile = "sp1985" #None or "filename"
+defaultDataFile = None #None or "filename"
 defaultMaType = "r"
 doVersusDefault = "y"
 doConfirmationDefault = "n"
