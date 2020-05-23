@@ -2,6 +2,7 @@
 import os, sys, traceback
 import systems as sys
 import data as dataIO
+import charting 
 import shutil               #shell utils to get the terminal height
 import settings             #the GOOD way to import from a file
 #from settings import *     #The BAD way to import from a file
@@ -415,7 +416,7 @@ def main(data, filename):
     
     command = 0
     while command != 'q':
-        command = input("commands: 6=page, c=change company, a=add data, g=grand_totals, q=quit, r=restart, s=systems menu ")
+        command = input("commands: 6=page, c=change company, a=add data, g=grand_totals, q=quit, r=restart, s=systems menu, chart=chart")
         if command == 'q':
             return
         elif command == 'c':
@@ -455,7 +456,10 @@ def main(data, filename):
             stats = getStats(data, syscols)
             printStats(stats, len(data) - 1)
             dataIO.saveData(data, filename)
-
+        elif command == 'chart':
+            stats = getStats(data, syscols)
+            runningGt = stats[0][stat['runningGt']]
+            charting.chartSystems(runningGt)
         elif command == '6':
             whichInc = input("What increment do you want to go to? (q to exit, e for end increment) ")
             if(whichInc == "e"):
