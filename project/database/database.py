@@ -16,17 +16,36 @@ def connectToMariaDb(database):
     except mariadb.Error as e:
         print(f"Error connecting to MariaDB Platform: {e}")
         sys.exit(1)
-    return conn.cursor()
+    return conn
 
 # requires a mariaDB cursor (the thing that represents your connection to MariaDB)
-def getColumn(cursor, table, colName):
+def getColumn(cursor, colName):
     column = []
-    cursor.execute("SELECT CAST(_4 AS INTEGER) FROM columns")
+    cursor.execute("SELECT CAST(value AS INTEGER) FROM "+colName)
     for (item) in cursor:
         column.append(item[0])
     return column
 
+#inserts new data into the database for the given column.
+def saveColumn(conn, col, colName):
+    cursor = conn.cursor()
+    cursor.execute("CREATE TABLE IF NOT EXISTS "+colName+" (value INT NOT NULL)");
 
-cursor = connectToMariaDb("columns")
-column = getColumn(cursor, "columns", "_4")
-print(column)
+    cursor.execute("SELECT COUNT(*) FROM WORKED")
+    count = cursor.fetchone()[0]
+
+    print("count: "+str(count))
+    for i in range(count, len(col)): #indices 4 to 9
+        print("INSERT INTO "+colName+ " (value) values ("+str(col[i])+")")
+        cursor.execute("INSERT INTO "+colName+ " (value) values ("+str(col[i])+")")
+
+    conn.commit()
+
+
+#probably need an update to the DB schema where each datafile has it's own DB then each divisor has it's own table and the column name is something
+#plain and generic like "data" or "value"
+conn = connectToMariaDb("sp2000")
+#column = getColumn(cursor, "_2")
+#print(column)
+
+saveColumn(conn, [1,2,3,4,5,6,7,8,9,10], "worked")
