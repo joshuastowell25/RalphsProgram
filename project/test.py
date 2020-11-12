@@ -1,28 +1,42 @@
-def calculateColumnRalphsMA(num, data):
+def calculateColumnRalphsMA(num, data, result):
     part = num // 2  # integer division is done with //
-    col = [0] * len(data)
+
+    originalColLength = len(result)
+    offset = max(num, originalColLength)
+    print("offset: "+str(offset))
+
+    if (result is None):
+        result = [0] * len(data)
+
+    #extend the col size
+    if(len(result) < len(data)):
+        extension = [0] * (len(data) - len(result))
+        result = result + extension
 
     backsum = 0
     frontsum = 0
 
     # Calculate the first frontsum and backsum
-    for i in range(part):
-        backsum += data[i]  # index 0 to 9 if num is 20
-        frontsum += data[i + part]  # index 10 to 19 if num is 20
+    for i in range(part): #0,1,
+        backsum += data[i + originalColLength - num]  #0+1=1
+        frontsum += data[i + part + originalColLength - num]  #2+3=5
+    print("frontsum:"+str(frontsum)+" backsum: "+str(backsum))
 
-    col[num - 1] = frontsum - backsum
+    #set the data point for that frontsum and backsum calculation
+    result[offset - 1] = frontsum - backsum #result[3] = 5-1 = 4
 
-    # Using memoization:
-    for i in range(num, len(data)):  # index 20 to 800
-        backNum = data[i - num]  # remove index 0
+    #calculate the ith index
+    for i in range(offset, len(data)):
+        backNum = data[i - num]
         backsum -= backNum
-        transferNum = data[i - part]  # 20 - 10 = index 10
-        backsum += transferNum  # add index 10
-        frontsum -= transferNum  # remove index 10
+        #transferNum goes from the frontsum to the backsum
+        transferNum = data[i - part]
+        backsum += transferNum
+        frontsum -= transferNum
         frontNum = data[i]
-        frontsum += frontNum  # add index 20
-        col[i] = frontsum - backsum
-    return col
+        frontsum += frontNum
+        result[i] = frontsum - backsum
+    return result
 
-result = calculateColumnRalphsMA(4, [0,1,2,3,4,5,6,7,8,9])
+result = calculateColumnRalphsMA(4, [1,2,3,4,5,6,7,8,9,10,11,12], []) #->[0, 0, 0, 0, 12, 6, -12, -6]
 print(result)
