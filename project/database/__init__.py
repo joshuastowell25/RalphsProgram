@@ -4,4 +4,4 @@
 __all__ = ["database"] # controls what 'from database import *' does. This is the list of files to include in __all__.
 
 #control what 'import dataIO' actually does.
-from .database import connectToMariaDb #now you can call data.getData
+from .database import getDbConnection, loadColumn, saveColumn #now you can call data.getData
