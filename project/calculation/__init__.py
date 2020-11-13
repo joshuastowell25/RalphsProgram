@@ -4,4 +4,4 @@
 __all__ = ["calculation"] # controls what 'from data import *' does
 
 #control what 'import calculation' actually does.
-from .calculation import calcSysCols
+from .calculation import calcSysCols, calculateColumnRalphsMA

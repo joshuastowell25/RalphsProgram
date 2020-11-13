@@ -16,7 +16,7 @@ def calcSysCol(sys, data):
     col = [0] * len(data)
     for i in range(len(sys)):
         if maType == MaTypes.RalphStyle:
-            numcol = calculateColumnRalphsMA(sys[i], data)
+            numcol = calculateColumnRalphsMA(sys[i], data, [])
         elif maType == MaTypes.NormalStyle:
             numcol = calculateColumnNormalMA(sys[i], data)
         for j in range(len(numcol)):
@@ -26,31 +26,47 @@ def calcSysCol(sys, data):
 
 # given a single divisor number calculates the result of that number on the data
 # the 'result' is a single array of numbers, aka a column, that divisor's column.
-def calculateColumnRalphsMA(num, data):
+def calculateColumnRalphsMA(num, data, result):
     part = num // 2  # integer division is done with //
-    col = [0] * len(data)
+
+    originalColLength = len(result)
+    offset = max(num, originalColLength)
+    print("offset: "+str(offset))
+
+    if (result is None):
+        result = [0] * len(data)
+
+    #extend the col size
+    if(len(result) < len(data)):
+        extension = [0] * (len(data) - len(result))
+        result = result + extension
 
     backsum = 0
     frontsum = 0
 
     # Calculate the first frontsum and backsum
-    for i in range(part):
-        backsum += data[i]  # index 0 to 9 if num is 20
-        frontsum += data[i + part]  # index 10 to 19 if num is 20
+    for i in range(part): #0,1,
+        print("adding to backsum, index: "+str(i + offset - num))
+        print("adding to frontsum, index: "+str(i +part+ offset - num))
+        backsum += data[i + offset - num]  #0+1=1
+        frontsum += data[i + part + offset - num]  #2+3=5
+    print("frontsum:"+str(frontsum)+" backsum: "+str(backsum)) # backsum: 32993, frontsum: 32791. f-b = -202
 
-    col[num - 1] = frontsum - backsum
+    #set the data point for that frontsum and backsum calculation
+    result[offset - 1] = frontsum - backsum #result[3] = 5-1 = 4
 
-    # Using memoization:
-    for i in range(num, len(data)):  # index 20 to 800
-        backNum = data[i - num]  # remove index 0
+    #calculate the ith index
+    for i in range(offset, len(data)):
+        backNum = data[i - num]
         backsum -= backNum
-        transferNum = data[i - part]  # 20 - 10 = index 10
-        backsum += transferNum  # add index 10
-        frontsum -= transferNum  # remove index 10
+        #transferNum goes from the frontsum to the backsum
+        transferNum = data[i - part]
+        backsum += transferNum
+        frontsum -= transferNum
         frontNum = data[i]
-        frontsum += frontNum  # add index 20
-        col[i] = frontsum - backsum
-    return col
+        frontsum += frontNum
+        result[i] = frontsum - backsum
+    return result
 
 # given a single moving average number calculates the result of that number on the data
 def calculateColumnNormalMA(num, data):
