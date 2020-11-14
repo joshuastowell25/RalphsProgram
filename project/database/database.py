@@ -3,6 +3,13 @@ import mariadb
 import sys
 
 #https://mariadb.com/resources/blog/how-to-connect-python-programs-to-mariadb/
+#database software: MariaDB
+#use the mariaDb MySQL client: HeidiSQL or MySQL Workbench
+#login with root:root
+#type: use sp2000
+#type: show tables
+#type select * from _2
+
 # Connect to MariaDB Platform where the database is the name of the data file being used.
 def getDbConnection(database):
     try:
@@ -14,41 +21,66 @@ def getDbConnection(database):
             database=database
         )
     except mariadb.Error as e:
-        print(f"Error connecting to MariaDB Platform: {e}")
+        print(f"Error connecting to MariaDB: {e}")
+        if("Unknown database" in str(e)):
+            return createDatabase(database)
         sys.exit(1)
     return conn
 
-# requires a mariaDB cursor (the thing that represents your connection to MariaDB)
-def loadColumn(cursor, colName):
-    column = []
+def createDatabase(databaseName):
+    print("Creating database: "+databaseName)
+    try:
+        conn = mariadb.connect(
+            user="root",
+            password="root",
+            host="127.0.0.1",
+            port=3306
+        )
+        cursor = conn.cursor()
+        cursor.execute("create database "+databaseName)
+        cursor.execute("use "+databaseName)
 
+        return conn
+    except mariadb.Error as e:
+        print(f"Error connecting to MariaDB Platform: {e}")
+        sys.exit(1)
+
+def loadColumn(dbConnection, colName):
+    column = []
+    cursor = dbConnection.cursor()
     try:
         cursor.execute("SELECT CAST(value AS INTEGER) FROM " + colName)
         for (item) in cursor:
             column.append(item[0])
     except mariadb.Error as e:
-        print(f"Error: {e}")
+        pass
+        #print(f"Error loading column: {e}")
 
     return column
 
-#inserts new data into the database for the given column.
-def saveColumn(conn, col, colName):
-    cursor = conn.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS "+colName+" (value INT NOT NULL)");
+#inserts new data into the database for the given divisor column.
+# conn: the dbConnection
+# col: the array of data
+# divisorColName: The name of the column in the database, e.g.: "_2", "_4", "_6"
+def saveColumn(dbConnection, col, divisorColName):
+    cursor = dbConnection.cursor()
+    try:
+        cursor.execute("CREATE TABLE IF NOT EXISTS "+divisorColName+" (value INT NOT NULL)");
 
-    cursor.execute("SELECT COUNT(*) FROM WORKED")
-    count = cursor.fetchone()[0]
+        count = getCount(dbConnection, divisorColName)
+        for i in range(count, len(col)): #indices 4 to 9
+            cursor.execute("INSERT INTO "+divisorColName+ " (value) values ("+str(col[i])+")")
 
-    for i in range(count, len(col)): #indices 4 to 9
-        cursor.execute("INSERT INTO "+colName+ " (value) values ("+str(col[i])+")")
+        dbConnection.commit()
+    except mariadb.Error as e:
+        print(f"Error saving column: {e}")
 
-    conn.commit()
-
-
-#probably need an update to the DB schema where each datafile has it's own DB then each divisor has it's own table and the column name is something
-#plain and generic like "data" or "value"
-conn = getDbConnection("sp2000")
-#column = getColumn(cursor, "_2")
-#print(column)
-
-saveColumn(conn, [1,2,3,4,5,6,7,8,9,10], "worked")
+def getCount(dbConnection, colName):
+    cursor = dbConnection.cursor()
+    try:
+        cursor.execute("SELECT COUNT(*) FROM " + colName)
+        count = cursor.fetchone()[0]  # get the count
+        cursor.close()
+        return count
+    except mariadb.Error as e:
+        print(f"Error getting count: {e}")

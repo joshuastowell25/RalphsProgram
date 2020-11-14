@@ -1,24 +1,40 @@
 from definitions import MaTypes
+import database
 maType = MaTypes.RalphStyle # the default desired moving average type
 
 
 # returns a collection of columns for each system
-def calcSysCols(systems, data):
+# systems: a 2d array of systems [[2,4,6,8],[10,12,14],[16,18,20],[22,24,26]]
+# data: The data to calculate the sys cols on
+# dbConnection: the connection to the database, given as an argument to allow re-use and avoid disconnecting and reconnecting repeatedly.
+def calcSysCols(systems, data, dbConnection):
     cols = []
     for i in range(len(systems)):
-        cols.append(calcSysCol(systems[i], data))
+        cols.append(calcSysCol(systems[i], data, dbConnection))
     return cols
 
 
 # given a list of numbers to comprise a system, calculates that system's column
-def calcSysCol(sys, data):
+def calcSysCol(sys, data, dbConnection):
     global maType
+    import time
+
     col = [0] * len(data)
     for i in range(len(sys)):
+        startMillis = int(round(time.time() * 1000))
+        adtl = ""
         if maType == MaTypes.RalphStyle:
-            numcol = calculateColumnRalphsMA(sys[i], data, [])
+            numcol = database.loadColumn(dbConnection, "_"+str(sys[i])) #load the calculated column
+            if(len(numcol)==len(data)):
+                adtl="Via database load. "
+            if(len(numcol) < len(data)):
+                numcol = calculateColumnRalphsMA(sys[i], data, numcol) #update the calculation
+            database.saveColumn(dbConnection, numcol, "_"+str(sys[i])) #save the updated calculation into the database
         elif maType == MaTypes.NormalStyle:
             numcol = calculateColumnNormalMA(sys[i], data)
+        endMillis = int(round(time.time() * 1000))
+        print("calculated number: "+str(sys[i])+" in "+str(endMillis - startMillis)+" milliseconds. "+adtl)
+
         for j in range(len(numcol)):
             col[j] += numcol[j]
     return col
@@ -31,7 +47,6 @@ def calculateColumnRalphsMA(num, data, result):
 
     originalColLength = len(result)
     offset = max(num, originalColLength)
-    print("offset: "+str(offset))
 
     if (result is None):
         result = [0] * len(data)
@@ -46,11 +61,8 @@ def calculateColumnRalphsMA(num, data, result):
 
     # Calculate the first frontsum and backsum
     for i in range(part): #0,1,
-        print("adding to backsum, index: "+str(i + offset - num))
-        print("adding to frontsum, index: "+str(i +part+ offset - num))
         backsum += data[i + offset - num]  #0+1=1
         frontsum += data[i + part + offset - num]  #2+3=5
-    print("frontsum:"+str(frontsum)+" backsum: "+str(backsum)) # backsum: 32993, frontsum: 32791. f-b = -202
 
     #set the data point for that frontsum and backsum calculation
     result[offset - 1] = frontsum - backsum #result[3] = 5-1 = 4
@@ -86,11 +98,3 @@ def calculateColumnNormalMA(num, data):
         # col[i] = (sum/num)            # because regular moving average
 
     return col
-
-# Saves a computed column to the database under a particular id
-# ids can relate to whole systems e.g. 'sys239842'
-# or divisors 'div20'
-# the length of the column always matches the length of the data at the time of computation so there's no need to save how long the data was
-# We will have to save the data file name in the id though. e.g. sys239842_sp1985, div20_sp1985
-def saveColumnToDB(col, database, colName): #e.g. (col, "sp1985", "_2")
-    pass

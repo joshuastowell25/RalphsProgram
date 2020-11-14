@@ -3,6 +3,7 @@ import os, sys, traceback
 import systems as sys
 import dataIO as dataIO
 import calculation as calculation
+import database
 import charting 
 import shutil               #shell utils to get the terminal height
 import settings             #the GOOD way to import from a file
@@ -298,7 +299,8 @@ def main(data, filename):
     global maType
     maType = getMaType(settings.defaultMaType) #gets and sets the global moving average type
     systems = sys.getSystems()
-    syscols = calculation.calcSysCols(systems, data)
+    dbConnection = database.getDbConnection(filename.replace(".dat", ""))
+    syscols = calculation.calcSysCols(systems, data, dbConnection)
 
     count = 0
     doVersus = settings.doVersusDefault
@@ -348,7 +350,7 @@ def main(data, filename):
             clearTerminal()
             data, filename = dataIO.getData()
             clearTerminal()
-            syscols = calculation.calcSysCols(systems, data)
+            syscols = calculation.calcSysCols(systems, data, dbConnection)
             for indexes in versusSystems:
                 vscol = calcVsCol(syscols, indexes)
                 syscols.append(vscol)
@@ -369,7 +371,7 @@ def main(data, filename):
                     data.append(int(float(datum) * 100))
             
             clearTerminal()
-            syscols = calculation.calcSysCols(systems, data)
+            syscols = calculation.calcSysCols(systems, data, dbConnection)
             for indexes in versusSystems:
                 vscol = calcVsCol(syscols, indexes)
                 syscols.append(vscol)
