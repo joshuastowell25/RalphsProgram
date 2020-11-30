@@ -68,8 +68,18 @@ def saveColumn(dbConnection, col, divisorColName):
         cursor.execute("CREATE TABLE IF NOT EXISTS "+divisorColName+" (value INT NOT NULL)");
 
         count = getCount(dbConnection, divisorColName)
-        for i in range(count, len(col)): #indices 4 to 9
-            cursor.execute("INSERT INTO "+divisorColName+ " (value) values ("+str(col[i])+")")
+
+        valString = ""
+        length = len(col)
+        for i in range(count, length, 1000):
+            print("Saved "+str(i)+" of "+str(length)+" to db\n")
+            for j in range(i , i + 1000):
+                if(j < length):
+                    valString += "("+str(col[j])+"),"
+            valString = valString[:-1]
+            if len(valString) > 0:
+                cursor.execute("INSERT INTO "+divisorColName+ " (value) values "+valString)
+            valString = ""
 
         dbConnection.commit()
     except mariadb.Error as e:
