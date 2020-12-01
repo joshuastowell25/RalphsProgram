@@ -4,6 +4,7 @@ import systems as sys
 import dataIO as dataIO
 import calculation as calculation
 import database
+import config
 import charting 
 import shutil               #shell utils to get the terminal height
 import settings             #the GOOD way to import from a file
@@ -266,13 +267,14 @@ def getColStats(data, syscol):
             wins.append(winloss)
         elif(winloss < 0):
             losses.append(winloss)
-        runningGt.append(gt)
-        runningTradeCount.append(tradeCount)
-        runningWinCount.append(winCount)
-        runningLossCount.append(lossCount)
-        runningTieCount.append(tieCount)
-        runningMaxWin.append(max(wins, default=0)/100)
-        runningMaxLoss.append(min(losses, default=0)/100)
+        if(config.config('flagSection','flags.runningTotals')):
+            runningGt.append(gt)
+            runningTradeCount.append(tradeCount)
+            runningWinCount.append(winCount)
+            runningLossCount.append(lossCount)
+            runningTieCount.append(tieCount)
+            runningMaxWin.append(max(wins, default=0)/100)
+            runningMaxLoss.append(min(losses, default=0)/100)
 
     return [gt, tradeCount, winCount, lossCount, max(wins, default=0)/100, min(losses, default=0)/100, runningGt, runningWinCount, runningLossCount, runningTieCount, runningTradeCount, runningMaxWin, runningMaxLoss] #internal representation of pennies is left of the decimal point
 
