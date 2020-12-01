@@ -201,10 +201,8 @@ def getColStats(data, syscol):
     winloss = 0
     wins = []
     losses = []
-    linestring = ""
     for i in range(len(syscol)):
         price = data[i]
-        linestring +="inc"+str(i+1)+", price="+str(data[i]).ljust(10)+", col: "+str(syscol[i])+" "
         if(syscol[i] > 0):
             if(position == positions['flat']):
                 position = positions['long']
@@ -222,7 +220,6 @@ def getColStats(data, syscol):
                 tradeCount += 1
                 position = positions['long']
                 positionPrice = price
-                linestring += "long from short, winloss: "+str(winloss)
         elif(syscol[i] < 0):
             if(position == positions['flat']):
                 position = positions['short']
@@ -240,7 +237,6 @@ def getColStats(data, syscol):
                 tradeCount += 1
                 position = positions['short']
                 positionPrice = price
-                linestring += "short from long, winloss: "+str(winloss)
         elif(syscol[i] == 0):
             if(position == positions['long']):
                 #you've exited a long position
@@ -253,7 +249,6 @@ def getColStats(data, syscol):
                     winCount += 1
                 gt += winloss
                 tradeCount += 1
-                linestring += "flat from long, winloss: "+str(winloss)
             elif(position == positions['short']):
                 #you've exited a short position
                 winloss = positionPrice - price
@@ -265,10 +260,8 @@ def getColStats(data, syscol):
                     winCount += 1
                 gt += winloss
                 tradeCount += 1
-                linestring += "flat from short, winloss: "+str(winloss)
             position = positions['flat']
             positionPrice = price
-        linestring = ""
         if(winloss > 0):
             wins.append(winloss)
         elif(winloss < 0):
