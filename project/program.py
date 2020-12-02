@@ -184,6 +184,8 @@ def getStats(data, syscols):
     
 #stats a particular column
 def getColStats(data, syscol):
+    print('Running Totals Flag: '+str(config.getConfig('FlagSection','flags.runningTotals')))
+
     gt = 0
     runningGt=[]
     runningWinCount=[]

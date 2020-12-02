@@ -1,6 +1,7 @@
-import ConfigParser
+import configparser
 
-config = ConfigParser.RawConfigParser()
+config = configparser.RawConfigParser()
 config.read('../config.ini')
 
-#Use as: config.get('iniSection', 'property.name');
+def getConfig(section, propName):
+    return config.get(section, propName)

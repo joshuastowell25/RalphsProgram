@@ -4,4 +4,4 @@
 __all__ = ["configuration"] # controls what 'from config import *' does
 
 #control what 'import config' actually does.
-from .configuration import config #now you can call config.config to access the configuration settings
+from .configuration import getConfig #now you can call config.config to access the configuration settings
