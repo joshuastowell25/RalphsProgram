@@ -269,7 +269,7 @@ def getColStats(data, syscol):
             wins.append(winloss)
         elif(winloss < 0):
             losses.append(winloss)
-        if(config.config('flagSection','flags.runningTotals')):
+        if(config.getConfig('flagSection','flags.runningTotals')):
             runningGt.append(gt)
             runningTradeCount.append(tradeCount)
             runningWinCount.append(winCount)
