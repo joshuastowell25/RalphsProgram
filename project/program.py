@@ -184,8 +184,6 @@ def getStats(data, syscols):
     
 #stats a particular column
 def getColStats(data, syscol):
-    print('Running Totals Flag: '+str(config.getConfig('FlagSection','flags.runningTotals')))
-
     gt = 0
     runningGt=[]
     runningWinCount=[]
@@ -269,7 +267,7 @@ def getColStats(data, syscol):
             wins.append(winloss)
         elif(winloss < 0):
             losses.append(winloss)
-        if(config.getConfig('flagSection','flags.runningTotals')):
+        if(config.runningTotalsFlag):
             runningGt.append(gt)
             runningTradeCount.append(tradeCount)
             runningWinCount.append(winCount)
