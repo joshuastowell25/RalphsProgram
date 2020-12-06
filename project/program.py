@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import os, sys, traceback
+import time
+
 import systems as sys
 import dataIO as dataIO
 import calculation as calculation
@@ -133,56 +135,86 @@ def printStats(stats, index):
     print("\n")
     banner = str("GRAND TOTAL:").ljust(26)
     for i in range(len(stats)):
-        banner += str(stats[i][stat['runningGt']][index]/100).rjust(10) #data is adjusted prior to this to have pennies to the left of the decimal, move them back right by dividing by 100
+        if (config.runningTotalsFlag):
+            banner += str(stats[i][stat['runningGt']][index] / 100).rjust(10)  # data is adjusted prior to this to have pennies to the left of the decimal, move them back right by dividing by 100
+        else:
+            banner += str(stats[i][stat['gt']] / 100).rjust(10)  # data is adjusted prior to this to have pennies to the left of the decimal, move them back right by dividing by 100
     print(banner)
     
     banner = str("TRADE COUNT:").ljust(26)
     for i in range(len(stats)):
-        banner += str(stats[i][stat['runningTrades']][index]).rjust(10)
+        if (config.runningTotalsFlag):
+            banner += str(stats[i][stat['runningTrades']][index]).rjust(10)
+        else:
+            banner += str(stats[i][stat['trades']]).rjust(10)
     print(banner)
     
     banner = str("WIN COUNT:").ljust(26)
     for i in range(len(stats)):
-        banner += str(stats[i][stat['runningWins']][index]).rjust(10)
+        if (config.runningTotalsFlag):
+            banner += str(stats[i][stat['runningWins']][index]).rjust(10)
+        else:
+            banner += str(stats[i][stat['winCount']]).rjust(10)
     print(banner)
     
     banner = str("LOSS COUNT:").ljust(26)
     for i in range(len(stats)):
-        banner += str(stats[i][stat['runningLosses']][index]).rjust(10)
+        if(config.runningTotalsFlag):
+            banner += str(stats[i][stat['runningLosses']][index]).rjust(10)
+        else:
+            banner += str(stats[i][stat['lossCount']]).rjust(10)
     print(banner)
 
     banner = str("MAX WIN:").ljust(26)
     for i in range(len(stats)):
-        banner += str(stats[i][stat['runningMaxWin']][index]).rjust(10)
+        if(config.runningTotalsFlag):
+            banner += str(stats[i][stat['runningMaxWin']][index]).rjust(10)
+        else:
+            banner += str(stats[i][stat['maxWin']]).rjust(10)
     print(banner)
     
     banner = str("MAX LOSS:").ljust(26)
     for i in range(len(stats)):
-        banner += str(stats[i][stat['runningMaxLoss']][index]).rjust(10)
+        if (config.runningTotalsFlag):
+            banner += str(stats[i][stat['runningMaxLoss']][index]).rjust(10)
+        else:
+            banner += str(stats[i][stat['maxLoss']]).rjust(10)
     print(banner)    
 	
     banner = str("W/L RATIO:").ljust(26)
     for i in range(len(stats)):
-        winCount = stats[i][stat['runningWins']][index]
-        lossCount = stats[i][stat['runningLosses']][index]
+        if(config.runningTotalsFlag):
+            winCount = stats[i][stat['runningWins']][index]
+            lossCount = stats[i][stat['runningLosses']][index]
+        else:
+            winCount = stats[i][stat['winCount']]
+            lossCount = stats[i][stat['lossCount']]
         banner += str(format(float(winCount)/float(lossCount), '.2f')).rjust(10)
     print(banner)
     
     banner = str("L/W RATIO:").ljust(26)
     for i in range(len(stats)):
-        winCount = stats[i][stat['runningWins']][index]
-        lossCount = stats[i][stat['runningLosses']][index]
+        if (config.runningTotalsFlag):
+            winCount = stats[i][stat['runningWins']][index]
+            lossCount = stats[i][stat['runningLosses']][index]
+        else:
+            winCount = stats[i][stat['winCount']]
+            lossCount = stats[i][stat['lossCount']]
         banner += str(format(float(lossCount)/float(winCount), '.2f')).rjust(10)
     print(banner)
     
-#gets a list of stats for every given column
-def getStats(data, syscols):
+#calculates and returns a list of stats for every column given in syscols
+def calcStats(data, syscols):
+    start = time.time()
     result = []
     for i in range(len(syscols)):
         result.append(getColStats(data, syscols[i]))
+    stop = time.time()
+    diff = stop - start
+    print("Calculated results in " + "{:.2f}".format(diff) + " seconds")
     return result
     
-#stats a particular column
+#calculates and returns stats for a particular column
 def getColStats(data, syscol):
     gt = 0
     runningGt=[]
@@ -200,8 +232,8 @@ def getColStats(data, syscol):
     positionPrice = 0
     price = 0
     winloss = 0
-    wins = []
-    losses = []
+    maxWin = 0
+    maxLoss = 0
     for i in range(len(syscol)):
         price = data[i]
         if(syscol[i] > 0):
@@ -263,20 +295,20 @@ def getColStats(data, syscol):
                 tradeCount += 1
             position = positions['flat']
             positionPrice = price
-        if(winloss > 0):
-            wins.append(winloss)
-        elif(winloss < 0):
-            losses.append(winloss)
+        if(winloss > maxWin):
+            maxWin = winloss
+        elif(winloss < maxLoss):
+            maxLoss = winloss
         if(config.runningTotalsFlag):
             runningGt.append(gt)
             runningTradeCount.append(tradeCount)
             runningWinCount.append(winCount)
             runningLossCount.append(lossCount)
             runningTieCount.append(tieCount)
-            runningMaxWin.append(max(wins, default=0)/100)
-            runningMaxLoss.append(min(losses, default=0)/100)
+            runningMaxWin.append(maxWin/100)
+            runningMaxLoss.append(maxLoss/100)
 
-    return [gt, tradeCount, winCount, lossCount, max(wins, default=0)/100, min(losses, default=0)/100, runningGt, runningWinCount, runningLossCount, runningTieCount, runningTradeCount, runningMaxWin, runningMaxLoss] #internal representation of pennies is left of the decimal point
+    return [gt, tradeCount, winCount, lossCount, maxWin/100, maxLoss/100, runningGt, runningWinCount, runningLossCount, runningTieCount, runningTradeCount, runningMaxWin, runningMaxLoss] #internal representation of pennies is left of the decimal point
 
 def clearTerminal():
     import os
@@ -333,7 +365,7 @@ def main(data, filename):
         input("\nPress Enter to view columns...\n")
     currentLine = len(data)-screenHeight()
     printCols(data, syscols, currentLine)
-    stats = getStats(data, syscols)
+    stats = calcStats(data, syscols)
     printStats(stats, len(data) - 1)
     
     command = 0
@@ -353,7 +385,7 @@ def main(data, filename):
                 confcol = calcConfCol(syscols, indexes)
                 syscols.append(confcol)
             printCols(data, syscols, currentLine)
-            stats = getStats(data, syscols)
+            stats = calcStats(data, syscols)
             printStats(stats, len(data) - 1)
         elif command == 'a':
             while(True):
@@ -375,12 +407,12 @@ def main(data, filename):
                 syscols.append(confcol)
             currentLine = len(data)-screenHeight()
             printCols(data, syscols, currentLine)
-            stats = getStats(data, syscols)
+            stats = calcStats(data, syscols)
             printStats(stats, len(data) - 1)
             dataIO.saveData(data, filename)
         elif command == 'chart':
             whichSys = int(input("Which system do you want to chart? (e.g. 1, 2, 5, etc) "))
-            stats = getStats(data, syscols)
+            stats = calcStats(data, syscols)
             runningGt = stats[whichSys-1][stat['runningGt']]
             charting.chartSystems(runningGt)
         elif command == '6':
@@ -405,7 +437,7 @@ def main(data, filename):
             printStats(stats, len(data) - 1)
         elif command == 'g': #Grand Totals
             printCols(data, syscols, currentLine)
-            stats = getStats(data, syscols)
+            stats = calcStats(data, syscols)
             printStats(stats, len(data) - 1)
 
 try:
@@ -413,6 +445,7 @@ try:
     data, filename = dataIO.getData(settings.defaultDataFile)
     main(data, filename)
 except Exception as e:
+    print("Error")
     exc_type, exc_obj, exc_tb = sys.exc_info()
     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
     print(exc_type, fname, exc_tb.tb_lineno)

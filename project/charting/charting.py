@@ -10,7 +10,7 @@ def chartSystems(data):
     plt.ylabel("Grand total") 
     plt.plot(x,y)
     #ensure matplot lib uses full screen
-    figManager = plt.get_current_fig_manager()
-    figManager.window.showMaximized()
+    #figManager = plt.get_current_fig_manager()
+    #figManager.frame.Maximize(True)
 
     plt.show() 

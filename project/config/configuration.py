@@ -10,4 +10,4 @@ config.read(configPath)
 def getConfig(section, propName):
     return config.get(section, propName)
 
-runningTotalsFlag = getConfig('FlagSection','flags.runningTotals')
+runningTotalsFlag = getConfig('FlagSection','flags.runningTotals') in ['true', 'True', 'TRUE']
