@@ -1,4 +1,5 @@
 import os
+import datetime
 from definitions import DATA_PATH
 
 #gets an array of data from a particular file
@@ -10,10 +11,20 @@ def getData(filename = None): #filename defaults to None
     file_handle = open(os.path.join(DATA_PATH, filename), 'r')
     lines_list = file_handle.readlines()
     data = []
+    dates = []
     for line in lines_list:
-        data.append(int(float(line)))
+        tokens = line.split(",")
+        if(len(tokens) > 1):
+            data.append(int(100*float(tokens[5])))
+            dateTimeStr = tokens[0]+" "+tokens[1] #e.g. '06/29/2019 08:15'
+            dateTimeObj = datetime.datetime.strptime(dateTimeStr, '%m/%d/%Y %H:%M')
+            dates.append(dateTimeObj)
+        else:
+            data.append(int(100*float(tokens[0])))
     print ("\n")
-    return data, filename
+    if(len(dates) == 0):
+        dates = None
+    return data, filename, dates
 
 #saves data to a given filename
 def saveData(data, filename):

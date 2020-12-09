@@ -322,7 +322,7 @@ def isValidDecimal(input):
     else:
         return True
     
-def main(data, filename):
+def main(data, filename, dates):
     global maType
     maType = getMaType(settings.defaultMaType) #gets and sets the global moving average type
     systems = sys.getSystems()
@@ -375,7 +375,8 @@ def main(data, filename):
             return
         elif command == 'c':
             clearTerminal()
-            data, filename = dataIO.getData()
+            data, filename, dates = dataIO.getData()
+            dbConnection = database.getDbConnection(filename.replace(".dat", ""))
             clearTerminal()
             syscols = calculation.calcSysCols(systems, data, dbConnection)
             for indexes in versusSystems:
@@ -414,7 +415,7 @@ def main(data, filename):
             whichSys = int(input("Which system do you want to chart? (e.g. 1, 2, 5, etc) "))
             stats = calcStats(data, syscols)
             runningGt = stats[whichSys-1][stat['runningGt']]
-            charting.chartSystems(runningGt)
+            charting.chartData(runningGt, dates)
         elif command == '6':
             whichInc = input("What increment do you want to go to? (q to exit, e for end increment) ")
             if(whichInc == "e"):
@@ -427,7 +428,7 @@ def main(data, filename):
             printStats(stats, int(whichInc) - 1)
         elif command == 'r': #Restart
             clearTerminal()
-            data, filename = dataIO.getData(settings.defaultDataFile)
+            data, filename, dates = dataIO.getData(settings.defaultDataFile)
             clearTerminal()
             main(data, filename)
         elif command == 's':
@@ -442,8 +443,9 @@ def main(data, filename):
 
 try:
     clearTerminal()
-    data, filename = dataIO.getData(settings.defaultDataFile)
-    main(data, filename)
+    data, filename, dates = dataIO.getData(settings.defaultDataFile)
+    charting.chartData(data, dates)
+    #main(data, filename, dates)
 except Exception as e:
     print("Error")
     exc_type, exc_obj, exc_tb = sys.exc_info()
