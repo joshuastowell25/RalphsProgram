@@ -4,11 +4,19 @@ from definitions import DATA_PATH
 
 #gets an array of data from a particular file
 def getData(filename = None): #filename defaults to None
-    if filename is None:
-        filename = input("What data file do you want to use? \n")
-    filename = filename.lower()
-    filename += ".dat"
-    file_handle = open(os.path.join(DATA_PATH, filename), 'r')
+
+    file_handle = None
+    while(file_handle is None):
+        try:
+            if filename is None:
+                filename = input("What data file do you want to use? \n")
+            filename = filename.lower()
+            filename += ".dat"
+            file_handle = open(os.path.join(DATA_PATH, filename), 'r')
+        except Exception as e:
+            print("No file exists named "+filename)
+            filename = None
+
     lines_list = file_handle.readlines()
     data = []
     dates = []
