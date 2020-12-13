@@ -27,5 +27,9 @@ def chartData(data, dates = None):
         pyplot.sca(ax)
         pyplot.xticks(rotation=90)
 
+    #pyplot.get_current_fig_manager().full_screen_toggle()  # toggle fullscreen mode
+    manager = pyplot.get_current_fig_manager()
+    manager.resize(*manager.window.maxsize())
+
     pyplot.draw()
     pyplot.show()

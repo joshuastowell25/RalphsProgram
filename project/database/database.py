@@ -1,6 +1,7 @@
 # Module Imports
 import mariadb
 import sys
+import config
 
 #https://mariadb.com/resources/blog/how-to-connect-python-programs-to-mariadb/
 #database software: MariaDB
@@ -11,30 +12,30 @@ import sys
 #type select * from _2
 
 # Connect to MariaDB Platform where the database is the name of the data file being used.
+# the database name given is generally a 'company name' e.g.:es, sp1985, etc.
 def getDbConnection(database):
+    conn = None
     try:
         conn = mariadb.connect(
-            user="root",
-            password="root",
-            host="127.0.0.1",
-            port=3306,
+            user=config.getConfig('DatabaseSection','db.user'),
+            password=config.getConfig('DatabaseSection','db.password'),
+            host=config.getConfig('DatabaseSection','db.host'),
+            port=int(config.getConfig('DatabaseSection','db.port')),
             database=database
         )
     except mariadb.Error as e:
         print(f"Error connecting to MariaDB: {e}")
-        if("Unknown database" in str(e)):
-            return createDatabase(database)
-        sys.exit(1)
+
     return conn
 
 def createDatabase(databaseName):
     print("Creating database: "+databaseName)
     try:
         conn = mariadb.connect(
-            user="root",
-            password="root",
-            host="127.0.0.1",
-            port=3306
+            user=config.getConfig('DatabaseSection', 'db.user'),
+            password=config.getConfig('DatabaseSection', 'db.password'),
+            host=config.getConfig('DatabaseSection', 'db.host'),
+            port=int(config.getConfig('DatabaseSection', 'db.port'))
         )
         cursor = conn.cursor()
         cursor.execute("create database "+databaseName)
@@ -58,16 +59,31 @@ def loadColumn(dbConnection, colName):
 
     return column
 
+def loadDataFromDatabase(dbConnection):
+    data=[]
+    dates=[]
+    cursor = dbConnection.cursor()
+    try:
+        cursor.execute("SELECT time, value FROM data")
+        for (line) in cursor:
+            dates.append(line[0])
+            data.append(int(float(line[1])*100))#deal with ints rather than floats
+    except mariadb.Error as e:
+        pass
+        # print(f"Error loading column: {e}")
+
+    return data, dates
+
 #inserts new data into the database for the given divisor column.
 # conn: the dbConnection
 # col: the array of data
-# divisorColName: The name of the column in the database, e.g.: "_2", "_4", "_6"
-def saveColumn(dbConnection, col, divisorColName):
+# tableName: e.g.: "_2", "_4", "_6"
+def saveColumn(dbConnection, col, tableName):
     cursor = dbConnection.cursor()
     try:
-        cursor.execute("CREATE TABLE IF NOT EXISTS "+divisorColName+" (value INT NOT NULL)");
+        cursor.execute("CREATE TABLE IF NOT EXISTS " + tableName + " (value INT NOT NULL)");
 
-        count = getCount(dbConnection, divisorColName)
+        count = getCount(dbConnection, tableName)
 
         valString = ""
         length = len(col)
@@ -78,7 +94,7 @@ def saveColumn(dbConnection, col, divisorColName):
                     valString += "("+str(col[j])+"),"
             valString = valString[:-1]
             if len(valString) > 0:
-                cursor.execute("INSERT INTO "+divisorColName+ " (value) values "+valString)
+                cursor.execute("INSERT INTO " + tableName + " (value) values " + valString)
             valString = ""
 
         dbConnection.commit()
@@ -94,3 +110,13 @@ def getCount(dbConnection, colName):
         return count
     except mariadb.Error as e:
         print(f"Error getting count: {e}")
+
+def tableExists(dbConnection, tableName):
+    cursor = dbConnection.cursor()
+    try:
+        cursor.execute("SELECT COUNT(*) FROM information_schema.TABLE WHERE TABLE_NAME="+tableName)
+        count = cursor.fetchone()[0]
+        cursor.close()
+        return count == 1
+    except mariadb.Error as e:
+        print(f"Error checking table existance: {e}")

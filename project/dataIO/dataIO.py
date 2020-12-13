@@ -1,9 +1,22 @@
 import os
 import datetime
+import database
 from definitions import DATA_PATH
 
+def getDataFromDatabase(dbConnection = None):
+    while(dbConnection is None):
+        companyName = input("What data file do you want to use? \n")
+        dbConnection = database.getDbConnection(companyName)
+        if dbConnection is None:
+            print("No file exists named " + companyName)
+
+    data, dates = database.loadDataFromDatabase(dbConnection)
+    return {'dates': dates, 'data': data, 'dbConnection': dbConnection}
+
+
+
 #gets an array of data from a particular file
-def getData(filename = None): #filename defaults to None
+def getDataFromFile(filename = None): #filename defaults to None
 
     file_handle = None
     while(file_handle is None):
@@ -23,7 +36,7 @@ def getData(filename = None): #filename defaults to None
     for line in lines_list:
         tokens = line.split(",")
         if(len(tokens) > 1):
-            data.append(int(100*float(tokens[5])))
+            data.append(int(100*float(tokens[5]))) #multiply by 100 to get rid of the pennies
             dateTimeStr = tokens[0]+" "+tokens[1] #e.g. '06/29/2019 08:15'
             dateTimeObj = datetime.datetime.strptime(dateTimeStr, '%m/%d/%Y %H:%M')
             dates.append(dateTimeObj)
@@ -35,10 +48,14 @@ def getData(filename = None): #filename defaults to None
     return data, filename, dates
 
 #saves data to a given filename
-def saveData(data, filename):
+def saveData(data, filename, dates=None):
+    hasDates = (dates != None)
     with open(os.path.join(DATA_PATH, filename), 'w') as filehandle:
-        for datum in data:
-            filehandle.write('%s\n' % datum)
+        for i in range(0, len(data)):
+            if hasDates:
+                filehandle.write(str(dates[i])+","+str(float(data[i])/100)+"\n")
+            else:
+                filehandle.write(str(float(data[i])/100)+"\n")
         filehandle.close()
 
 def clearTerminal():

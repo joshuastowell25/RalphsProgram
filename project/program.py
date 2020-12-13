@@ -322,11 +322,15 @@ def isValidDecimal(input):
     else:
         return True
     
-def main(data, filename, dates):
+def main():
     global maType
     maType = getMaType(settings.defaultMaType) #gets and sets the global moving average type
+    result = dataIO.getDataFromDatabase()
+    dbConnection = result['dbConnection']
+    data = result['data']
+    dates = result['dates']
+
     systems = sys.getSystems()
-    dbConnection = database.getDbConnection(filename.replace(".dat", ""))
     syscols = calculation.calcSysCols(systems, data, dbConnection)
 
     count = 0
@@ -370,13 +374,17 @@ def main(data, filename, dates):
     
     command = 0
     while command != 'q':
-        command = input("commands: 6=page, c=change company, a=add data, g=grand_totals, q=quit, r=restart, s=systems menu, chart=chart")
+        command = input("commands: 6=page, c=change company, g=grand_totals, q=quit, r=restart, s=systems menu, chart=chart")
         if command == 'q':
             return
         elif command == 'c':
             clearTerminal()
-            data, filename, dates = dataIO.getData()
-            dbConnection = database.getDbConnection(filename.replace(".dat", ""))
+            dbConnection.close()
+            result = dataIO.getDataFromDatabase()
+            dbConnection = result['dbConnection']
+            data = result['data']
+            dates = result['dates']
+
             clearTerminal()
             syscols = calculation.calcSysCols(systems, data, dbConnection)
             for indexes in versusSystems:
@@ -388,29 +396,6 @@ def main(data, filename, dates):
             printCols(data, syscols, currentLine)
             stats = calcStats(data, syscols)
             printStats(stats, len(data) - 1)
-        elif command == 'a':
-            while(True):
-                datum = input("What is the price for new increment "+str(len(data)+1)+"? q to finish.\n")
-                if(datum == "q"):
-                    break
-                elif(isValidDecimal(datum) != True):
-                    input("Bad input! Press Enter to try Again")
-                else:
-                    data.append(int(float(datum) * 100))
-            
-            clearTerminal()
-            syscols = calculation.calcSysCols(systems, data, dbConnection)
-            for indexes in versusSystems:
-                vscol = calcVsCol(syscols, indexes)
-                syscols.append(vscol)
-            for indexes in confirmationSystems:
-                confcol = calcConfCol(syscols, indexes)
-                syscols.append(confcol)
-            currentLine = len(data)-screenHeight()
-            printCols(data, syscols, currentLine)
-            stats = calcStats(data, syscols)
-            printStats(stats, len(data) - 1)
-            dataIO.saveData(data, filename)
         elif command == 'chart':
             whichSys = int(input("Which system do you want to chart? (e.g. 1, 2, 5, etc) "))
             stats = calcStats(data, syscols)
@@ -428,9 +413,7 @@ def main(data, filename, dates):
             printStats(stats, int(whichInc) - 1)
         elif command == 'r': #Restart
             clearTerminal()
-            data, filename, dates = dataIO.getData(settings.defaultDataFile)
-            clearTerminal()
-            main(data, filename)
+            main()
         elif command == 's':
             sys.enterSystemsMenu(systems)
             #now they've returned
@@ -443,11 +426,9 @@ def main(data, filename, dates):
 
 try:
     clearTerminal()
-    data, filename, dates = dataIO.getData(settings.defaultDataFile)
-    charting.chartData(data, dates)
-    #main(data, filename, dates)
+    main()
 except Exception as e:
-    print("Error")
+    print(f"Error: {e}")
     exc_type, exc_obj, exc_tb = sys.exc_info()
     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
     print(exc_type, fname, exc_tb.tb_lineno)
