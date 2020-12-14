@@ -397,8 +397,9 @@ def main():
             stats = calcStats(data, syscols)
             printStats(stats, len(data) - 1)
         elif command == 'chart':
-            whichSys = int(input("Which system do you want to chart? (e.g. 1, 2, 5, etc) "))
-            stats = calcStats(data, syscols)
+            whichSys = 1
+            if(len(stats) > 1):
+                whichSys = int(input("Which system do you want to chart? (e.g. 1, 2, 5, etc) "))
             runningGt = stats[whichSys-1][stat['runningGt']]
             charting.chartData(runningGt, dates)
         elif command == '6':

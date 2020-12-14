@@ -1,3 +1,4 @@
+import matplotlib
 import numpy as np
 import matplotlib.dates as mdates
 import matplotlib.ticker as ticker
@@ -28,8 +29,22 @@ def chartData(data, dates = None):
         pyplot.xticks(rotation=90)
 
     #pyplot.get_current_fig_manager().full_screen_toggle()  # toggle fullscreen mode
-    manager = pyplot.get_current_fig_manager()
-    manager.resize(*manager.window.maxsize())
+
+    #the way you maximize the plot depends on the matplotlib backend that's installed
+    backend = matplotlib.get_backend()
+    print("Matplotlib backend: "+backend+"\n")
+
+    if(backend == "TkAgg"):
+        manager = pyplot.get_current_fig_manager()
+        manager.resize(*manager.window.maxsize())
+    elif(backend == "WX"):
+        manager = pyplot.get_current_fig_manager()
+        manager.frame.Maximize(True)
+    elif(backend == "QT"):
+        manager = pyplot.get_current_fig_manager()
+        manager.window.showMaximized()
+    else:
+        print("Unrecognized matplotlib backend: "+backend)
 
     pyplot.draw()
     pyplot.show()
