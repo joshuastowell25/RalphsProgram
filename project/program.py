@@ -17,6 +17,9 @@ from definitions import MaTypes
 def screenHeight():
     return shutil.get_terminal_size().lines
 
+def screenWidth():
+    return shutil.get_terminal_size().columns
+
 #gets the users desired moving average type
 def getMaType(ans = None): #ans defaults to None
     if ans is None:
@@ -66,28 +69,23 @@ def getConfirmationIndexes():
         return getConfirmationIndexes()
     return [teamA, teamB]
 
-#prints a column
-def printCol(col):
-    for i in range(len(col)):
-        print ("inc "+str(i+1)+": "+str(col[i]))
-
 #prints all of the data and columns, starting at a particular increment if given
-def printCols(data, cols, startInc = None):
-    datastring = ""
+def printCols(data, dates, cols, startInc = None):
+    colString = ""
     if startInc is None:
-        for i in range(len(cols[0])):
+        startInc = len(data) - screenHeight()
+
+    for i in range(startInc - 1, startInc + screenHeight()):
+        if i < len(cols[0]):
             for j in range(len(cols)):
-                datastring += "{0:10d}".format(cols[j][i])
-            
-            print ("inc"+str(i+1)+", price="+str(data[i]/100).ljust(10)+datastring)
-            datastring = ""
-    else:
-        for i in range(startInc - 1, startInc + screenHeight()):
-            if i < len(cols[0]):
-                for j in range(len(cols)):
-                    datastring += "{0:10d}".format(cols[j][i])
-                print ("inc"+str(i+1)+", price="+str(data[i]/100).ljust(10)+datastring)
-                datastring = ""
+                colString += "{:>10}".format(cols[j][i])
+
+            increment = '{:>8}, '.format(i+1) #ten spaces, text to the right
+            date = str(dates[i])+", "
+            dataVal = '{:>10}, '.format(data[i]/100)
+
+            print(increment+date+dataVal+colString)
+            colString = ""
 
 #given the system columns and teamA,teamB of vsIndexes, calculates a vs column
 def calcVsCol(syscols, vsIndexes):
@@ -132,8 +130,11 @@ stat = {
 }    
     
 def printStats(stats, index):
-    print("\n")
-    banner = str("GRAND TOTAL:").ljust(26)
+    headingWidth = 43
+    width = screenWidth()
+    splitter = "*"*screenWidth()
+    print(splitter+"\n")
+    banner = str("GRAND TOTAL:").ljust(headingWidth)
     for i in range(len(stats)):
         if (config.runningTotalsFlag):
             banner += str(stats[i][stat['runningGt']][index] / 100).rjust(10)  # data is adjusted prior to this to have pennies to the left of the decimal, move them back right by dividing by 100
@@ -141,7 +142,7 @@ def printStats(stats, index):
             banner += str(stats[i][stat['gt']] / 100).rjust(10)  # data is adjusted prior to this to have pennies to the left of the decimal, move them back right by dividing by 100
     print(banner)
     
-    banner = str("TRADE COUNT:").ljust(26)
+    banner = str("TRADE COUNT:").ljust(headingWidth)
     for i in range(len(stats)):
         if (config.runningTotalsFlag):
             banner += str(stats[i][stat['runningTrades']][index]).rjust(10)
@@ -149,7 +150,7 @@ def printStats(stats, index):
             banner += str(stats[i][stat['trades']]).rjust(10)
     print(banner)
     
-    banner = str("WIN COUNT:").ljust(26)
+    banner = str("WIN COUNT:").ljust(headingWidth)
     for i in range(len(stats)):
         if (config.runningTotalsFlag):
             banner += str(stats[i][stat['runningWins']][index]).rjust(10)
@@ -157,7 +158,7 @@ def printStats(stats, index):
             banner += str(stats[i][stat['winCount']]).rjust(10)
     print(banner)
     
-    banner = str("LOSS COUNT:").ljust(26)
+    banner = str("LOSS COUNT:").ljust(headingWidth)
     for i in range(len(stats)):
         if(config.runningTotalsFlag):
             banner += str(stats[i][stat['runningLosses']][index]).rjust(10)
@@ -165,7 +166,7 @@ def printStats(stats, index):
             banner += str(stats[i][stat['lossCount']]).rjust(10)
     print(banner)
 
-    banner = str("MAX WIN:").ljust(26)
+    banner = str("MAX WIN:").ljust(headingWidth)
     for i in range(len(stats)):
         if(config.runningTotalsFlag):
             banner += str(stats[i][stat['runningMaxWin']][index]).rjust(10)
@@ -173,7 +174,7 @@ def printStats(stats, index):
             banner += str(stats[i][stat['maxWin']]).rjust(10)
     print(banner)
     
-    banner = str("MAX LOSS:").ljust(26)
+    banner = str("MAX LOSS:").ljust(headingWidth)
     for i in range(len(stats)):
         if (config.runningTotalsFlag):
             banner += str(stats[i][stat['runningMaxLoss']][index]).rjust(10)
@@ -181,7 +182,7 @@ def printStats(stats, index):
             banner += str(stats[i][stat['maxLoss']]).rjust(10)
     print(banner)    
 	
-    banner = str("W/L RATIO:").ljust(26)
+    banner = str("W/L RATIO:").ljust(headingWidth)
     for i in range(len(stats)):
         if(config.runningTotalsFlag):
             winCount = stats[i][stat['runningWins']][index]
@@ -192,7 +193,7 @@ def printStats(stats, index):
         banner += str(format(float(winCount)/float(lossCount), '.2f')).rjust(10)
     print(banner)
     
-    banner = str("L/W RATIO:").ljust(26)
+    banner = str("L/W RATIO:").ljust(headingWidth)
     for i in range(len(stats)):
         if (config.runningTotalsFlag):
             winCount = stats[i][stat['runningWins']][index]
@@ -211,7 +212,7 @@ def calcStats(data, syscols):
         result.append(getColStats(data, syscols[i]))
     stop = time.time()
     diff = stop - start
-    print("Calculated results in " + "{:.2f}".format(diff) + " seconds")
+    print("Calculated stats in " + "{:.2f}".format(diff) + " seconds")
     return result
     
 #calculates and returns stats for a particular column
@@ -368,7 +369,7 @@ def main():
     if(settings.immediateResults == False):      
         input("\nPress Enter to view columns...\n")
     currentLine = len(data)-screenHeight()
-    printCols(data, syscols, currentLine)
+    printCols(data, dates, syscols, currentLine)
     stats = calcStats(data, syscols)
     printStats(stats, len(data) - 1)
     
@@ -393,7 +394,7 @@ def main():
             for indexes in confirmationSystems:
                 confcol = calcConfCol(syscols, indexes)
                 syscols.append(confcol)
-            printCols(data, syscols, currentLine)
+            printCols(data, dates, syscols, currentLine)
             stats = calcStats(data, syscols)
             printStats(stats, len(data) - 1)
         elif command == 'chart':
@@ -410,7 +411,7 @@ def main():
             else:
                 currentLine = int(whichInc) - screenHeight()
 
-            printCols(data, syscols, currentLine)
+            printCols(data, dates, syscols, currentLine)
             printStats(stats, int(whichInc) - 1)
         elif command == 'r': #Restart
             clearTerminal()
@@ -418,10 +419,10 @@ def main():
         elif command == 's':
             sys.enterSystemsMenu(systems)
             #now they've returned
-            printCols(data, syscols, currentLine)
+            printCols(data, dates, syscols, currentLine)
             printStats(stats, len(data) - 1)
         elif command == 'g': #Grand Totals
-            printCols(data, syscols, currentLine)
+            printCols(data, dates, syscols, currentLine)
             stats = calcStats(data, syscols)
             printStats(stats, len(data) - 1)
 
