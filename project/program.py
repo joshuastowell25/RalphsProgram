@@ -174,15 +174,20 @@ def printStats(stats, index, minusIndex = 0):
     for i in range(len(stats)):
         winCount = stats[i][stat['runningWins']][index] - stats[i][stat['runningWins']][minusIndex]
         lossCount = stats[i][stat['runningLosses']][index] - stats[i][stat['runningLosses']][minusIndex]
-
-        banner += str(format(float(winCount)/float(lossCount), '.2f')).rjust(10)
+        if(lossCount != 0):
+            banner += str(format(float(winCount)/float(lossCount), '.2f')).rjust(10)
+        else:
+            banner += str("N/A").rjust(10)
     print(banner)
     
     banner = str("L/W RATIO:").ljust(headingWidth)
     for i in range(len(stats)):
         winCount = stats[i][stat['runningWins']][index] - stats[i][stat['runningWins']][minusIndex]
         lossCount = stats[i][stat['runningLosses']][index] - stats[i][stat['runningLosses']][minusIndex]
-        banner += str(format(float(lossCount)/float(winCount), '.2f')).rjust(10)
+        if(winCount != 0):
+            banner += str(format(float(lossCount)/float(winCount), '.2f')).rjust(10)
+        else:
+            banner += str("N/A").rjust(10)
     print(banner)
     
 #calculates and returns a list of stats for every column given in syscols
