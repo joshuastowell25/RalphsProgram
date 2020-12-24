@@ -1,12 +1,11 @@
 #!/usr/bin/env python
+import datetime
 import os, sys, traceback
 import time
-
+import pandas
 import systems as sys
 import dataIO as dataIO
 import calculation as calculation
-import database
-import config
 import charting 
 import shutil               #shell utils to get the terminal height
 import settings             #the GOOD way to import from a file
@@ -70,7 +69,7 @@ def getConfirmationIndexes():
     return [teamA, teamB]
 
 #prints all of the data and columns, starting at a particular increment if given
-def printCols(data, dates, cols, startInc = None):
+def printCols(data, dates, cols, startInc = None, offset=0):
     colString = ""
     if startInc is None:
         startInc = len(data) - screenHeight()
@@ -80,7 +79,7 @@ def printCols(data, dates, cols, startInc = None):
             for j in range(len(cols)):
                 colString += "{:>10}".format(cols[j][i])
 
-            increment = '{:>8}, '.format(i+1) #ten spaces, text to the right
+            increment = '{:>8}, '.format(i+1+offset) #> means align text to the right
             date = str(dates[i])+", "
             dataVal = '{:>10}, '.format(data[i]/100)
 
@@ -128,79 +127,61 @@ stat = {
     'runningMaxWin': 11,
     'runningMaxLoss': 12
 }    
-    
-def printStats(stats, index):
+
+#minus Index is the index of the stats to NOT count in what gets printed
+def printStats(stats, index, minusIndex = 0):
     headingWidth = 43
     width = screenWidth()
     splitter = "*"*screenWidth()
     print(splitter+"\n")
     banner = str("GRAND TOTAL:").ljust(headingWidth)
     for i in range(len(stats)):
-        if (config.runningTotalsFlag):
-            banner += str(stats[i][stat['runningGt']][index] / 100).rjust(10)  # data is adjusted prior to this to have pennies to the left of the decimal, move them back right by dividing by 100
-        else:
-            banner += str(stats[i][stat['gt']] / 100).rjust(10)  # data is adjusted prior to this to have pennies to the left of the decimal, move them back right by dividing by 100
+        value = stats[i][stat['runningGt']][index] - stats[i][stat['runningGt']][minusIndex]
+        banner += str(value / 100).rjust(10)  # data is adjusted prior to this to have pennies to the left of the decimal, move them back right by dividing by 100
     print(banner)
     
     banner = str("TRADE COUNT:").ljust(headingWidth)
     for i in range(len(stats)):
-        if (config.runningTotalsFlag):
-            banner += str(stats[i][stat['runningTrades']][index]).rjust(10)
-        else:
-            banner += str(stats[i][stat['trades']]).rjust(10)
+        value = stats[i][stat['runningTrades']][index] - stats[i][stat['runningTrades']][minusIndex]
+        banner += str(value).rjust(10)
     print(banner)
     
     banner = str("WIN COUNT:").ljust(headingWidth)
     for i in range(len(stats)):
-        if (config.runningTotalsFlag):
-            banner += str(stats[i][stat['runningWins']][index]).rjust(10)
-        else:
-            banner += str(stats[i][stat['winCount']]).rjust(10)
+        value = stats[i][stat['runningWins']][index] - stats[i][stat['runningWins']][minusIndex]
+        banner += str(value).rjust(10)
     print(banner)
     
     banner = str("LOSS COUNT:").ljust(headingWidth)
     for i in range(len(stats)):
-        if(config.runningTotalsFlag):
-            banner += str(stats[i][stat['runningLosses']][index]).rjust(10)
-        else:
-            banner += str(stats[i][stat['lossCount']]).rjust(10)
+        value = stats[i][stat['runningLosses']][index] - stats[i][stat['runningLosses']][minusIndex]
+        banner += str(value).rjust(10)
     print(banner)
 
     banner = str("MAX WIN:").ljust(headingWidth)
     for i in range(len(stats)):
-        if(config.runningTotalsFlag):
-            banner += str(stats[i][stat['runningMaxWin']][index]).rjust(10)
-        else:
-            banner += str(stats[i][stat['maxWin']]).rjust(10)
+        value = stats[i][stat['runningMaxWin']][index] - stats[i][stat['runningMaxWin']][minusIndex]
+        banner += str(format(value, '.2f')).rjust(10)
     print(banner)
     
     banner = str("MAX LOSS:").ljust(headingWidth)
     for i in range(len(stats)):
-        if (config.runningTotalsFlag):
-            banner += str(stats[i][stat['runningMaxLoss']][index]).rjust(10)
-        else:
-            banner += str(stats[i][stat['maxLoss']]).rjust(10)
-    print(banner)    
+        value = stats[i][stat['runningMaxLoss']][index] - stats[i][stat['runningMaxLoss']][minusIndex]
+        banner += str(format(value, '.2f')).rjust(10)
+    print(banner)
 	
     banner = str("W/L RATIO:").ljust(headingWidth)
     for i in range(len(stats)):
-        if(config.runningTotalsFlag):
-            winCount = stats[i][stat['runningWins']][index]
-            lossCount = stats[i][stat['runningLosses']][index]
-        else:
-            winCount = stats[i][stat['winCount']]
-            lossCount = stats[i][stat['lossCount']]
+        winCount = stats[i][stat['runningWins']][index] - stats[i][stat['runningWins']][minusIndex]
+        lossCount = stats[i][stat['runningLosses']][index] - stats[i][stat['runningLosses']][minusIndex]
+
         banner += str(format(float(winCount)/float(lossCount), '.2f')).rjust(10)
     print(banner)
     
     banner = str("L/W RATIO:").ljust(headingWidth)
     for i in range(len(stats)):
-        if (config.runningTotalsFlag):
-            winCount = stats[i][stat['runningWins']][index]
-            lossCount = stats[i][stat['runningLosses']][index]
-        else:
-            winCount = stats[i][stat['winCount']]
-            lossCount = stats[i][stat['lossCount']]
+        winCount = stats[i][stat['runningWins']][index] - stats[i][stat['runningWins']][minusIndex]
+        lossCount = stats[i][stat['runningLosses']][index] - stats[i][stat['runningLosses']][minusIndex]
         banner += str(format(float(lossCount)/float(winCount), '.2f')).rjust(10)
     print(banner)
     
@@ -300,14 +281,14 @@ def getColStats(data, syscol):
             maxWin = winloss
         elif(winloss < maxLoss):
             maxLoss = winloss
-        if(config.runningTotalsFlag):
-            runningGt.append(gt)
-            runningTradeCount.append(tradeCount)
-            runningWinCount.append(winCount)
-            runningLossCount.append(lossCount)
-            runningTieCount.append(tieCount)
-            runningMaxWin.append(maxWin/100)
-            runningMaxLoss.append(maxLoss/100)
+
+        runningGt.append(gt)
+        runningTradeCount.append(tradeCount)
+        runningWinCount.append(winCount)
+        runningLossCount.append(lossCount)
+        runningTieCount.append(tieCount)
+        runningMaxWin.append(maxWin/100)
+        runningMaxLoss.append(maxLoss/100)
 
     return [gt, tradeCount, winCount, lossCount, maxWin/100, maxLoss/100, runningGt, runningWinCount, runningLossCount, runningTieCount, runningTradeCount, runningMaxWin, runningMaxLoss] #internal representation of pennies is left of the decimal point
 
@@ -375,7 +356,7 @@ def main():
     
     command = 0
     while command != 'q':
-        command = input("commands: 6=page, c=change company, g=grand_totals, q=quit, r=restart, s=systems menu, chart=chart")
+        command = input("commands: 6=page, c=change company, g=grand_totals, q=quit, r=restart, t=time window, s=systems menu, chart=chart")
         if command == 'q':
             return
         elif command == 'c':
@@ -421,6 +402,58 @@ def main():
             #now they've returned
             printCols(data, dates, syscols, currentLine)
             printStats(stats, len(data) - 1)
+        elif command == 't':
+            earliestDate = dates[0]
+            latestDate = dates[len(dates) - 1]
+            print("You can choose time windows between " + \
+                  str(earliestDate.strftime('%m/%d/%Y %H:%M:%S')) + " and " + \
+                  str(latestDate.strftime('%m/%d/%Y %H:%M:%S')))
+            startDate = None
+            endDate = None
+
+            while (startDate is None):
+                try:
+                    timeA = input("Enter the start date for your time window in format MM/DD/YYYY\n")
+                    if(len(timeA) < 11):
+                        timeA = timeA + " 00:00:00"
+                    startDate = datetime.datetime.strptime(timeA, '%m/%d/%Y %H:%M:%S')
+                    # make sure startDate is on or after the 0th date
+                    if (not (startDate >= earliestDate)):
+                        print("BAD DATE: You can only choose time windows between " + str(earliestDate) + " and " + str(
+                            latestDate) + "\n")
+                        startDate = None
+                except Exception as e:
+                    print(f"BAD DATE: {e}")
+                    startDate = None
+
+            while (endDate is None):
+                try:
+                    timeB = input("Enter the end date for your time window in format MM/DD/YYYY\n")
+                    if (len(timeB) < 11):
+                        timeB = timeB + " 00:00:00"
+                    endDate = datetime.datetime.strptime(timeB, '%m/%d/%Y %H:%M:%S')
+                    # make sure endDate is on or before the last date
+                    if (not (endDate <= latestDate)):
+                        print("BAD DATE: You can only choose time windows between " + str(earliestDate) + " and " + str(
+                            latestDate) + "\n")
+                        endDate = None
+                    if (not (endDate > startDate)):
+                        print("BAD DATE: The end date must be AFTER the start date.\n")
+                        endDate = None
+                except Exception as e:
+                    print(f"BAD DATE: {e}")
+                    endDate = None
+
+            dates_df = pandas.to_datetime(dates).to_frame()
+            dates_df = dates_df.truncate(before=startDate, after=endDate)
+            firstDate = dates_df[0].iloc[0]
+            lastDate = dates_df[0].iloc[len(dates_df.index) - 1]
+            startIndex = dates.index(firstDate)
+            endIndex = dates.index(lastDate)
+            syscolsTrimmed = [subcol[startIndex:endIndex+1] for subcol in syscols]
+            printCols(data[startIndex:endIndex+1], dates[startIndex:endIndex+1], syscolsTrimmed, currentLine, startIndex)
+            stats = calcStats(data, syscols)
+            printStats(stats, endIndex+1, startIndex)
         elif command == 'g': #Grand Totals
             printCols(data, dates, syscols, currentLine)
             stats = calcStats(data, syscols)

@@ -24,7 +24,6 @@ def calcSysCol(sys, data, dbConnection):
         startMillis = int(round(time.time() * 1000))
         adtl = ""
         if maType == MaTypes.RalphStyle:
-            #HERE is where the numcol needs to be trimmed down again to match the possibly windowed data
             numcol = database.loadColumn(dbConnection, "_"+str(sys[i])) #load the calculated column
             if(len(numcol)==len(data)):
                 adtl="Via database load. "
