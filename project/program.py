@@ -81,7 +81,7 @@ def printCols(data, dates, cols, startInc = None, offset=0):
 
             increment = '{:>8}, '.format(i+1+offset) #> means align text to the right
             date = str(dates[i])+", "
-            dataVal = '{:>10}, '.format(data[i]/100)
+            dataVal = '{:>10}, '.format(data[i])
 
             print(increment+date+dataVal+colString)
             colString = ""
@@ -139,7 +139,7 @@ def printStats(stats, index, minusIndex = 0):
     banner = str("GRAND TOTAL:").ljust(headingWidth)
     for i in range(len(stats)):
         value = stats[i][stat['runningGt']][index] - stats[i][stat['runningGt']][minusIndex]
-        banner += str(value / 100).rjust(10)  # data is adjusted prior to this to have pennies to the left of the decimal, move them back right by dividing by 100
+        banner += str(value).rjust(10)  # data is adjusted prior to this to have pennies to the left of the decimal, move them back right by dividing by 100
     print(banner)
     
     banner = str("TRADE COUNT:").ljust(headingWidth)
@@ -164,7 +164,6 @@ def printStats(stats, index, minusIndex = 0):
     for i in range(len(stats)):
         total = stats[i][stat['runningWinTotal']][index] - stats[i][stat['runningWinTotal']][minusIndex]
         count = stats[i][stat['runningWinCount']][index] - stats[i][stat['runningWinCount']][minusIndex]
-        total = total / 100
         value = total / count
         banner += str(format(value, '.2f')).rjust(10)
     print(banner)
@@ -173,7 +172,6 @@ def printStats(stats, index, minusIndex = 0):
     for i in range(len(stats)):
         total = stats[i][stat['runningLossTotal']][index] - stats[i][stat['runningLossTotal']][minusIndex]
         count = stats[i][stat['runningLossCount']][index] - stats[i][stat['runningLossCount']][minusIndex]
-        total = total / 100
         value = total / count
         banner += str(format(value, '.2f')).rjust(10)
     print(banner)
@@ -314,8 +312,8 @@ def getColStats(data, syscol):
         runningWinCount.append(winCount)
         runningLossCount.append(lossCount)
         runningTieCount.append(tieCount)
-        runningMaxWin.append(maxWin/100)
-        runningMaxLoss.append(maxLoss/100)
+        runningMaxWin.append(maxWin)
+        runningMaxLoss.append(maxLoss)
 
         if(i > 0 and winloss < 0):
             runningWinTotal.append(runningWinTotal[i - 1])
@@ -337,7 +335,7 @@ def getColStats(data, syscol):
             runningWinTotal.append(0)
         winloss = 0
 
-    return [gt, tradeCount, winCount, lossCount, maxWin/100, maxLoss/100, runningGt, runningWinCount, runningLossCount, runningTieCount, runningTradeCount, runningMaxWin, runningMaxLoss, runningWinTotal, runningLossTotal] #internal representation of pennies is left of the decimal point
+    return [gt, tradeCount, winCount, lossCount, maxWin, maxLoss, runningGt, runningWinCount, runningLossCount, runningTieCount, runningTradeCount, runningMaxWin, runningMaxLoss, runningWinTotal, runningLossTotal] #internal representation of pennies is left of the decimal point
 
 def clearTerminal():
     import os

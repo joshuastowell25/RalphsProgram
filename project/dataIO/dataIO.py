@@ -39,12 +39,12 @@ def getDataFromFile(filename = None): #filename defaults to None
     for line in lines_list:
         tokens = line.split(",")
         if(len(tokens) > 1):
-            data.append(float(tokens[5])*100) #multiply by 100 to get rid of the pennies
+            data.append(float(tokens[5]))
             dateTimeStr = tokens[0]+" "+tokens[1] #e.g. '06/29/2019 08:15'
             dateTimeObj = datetime.datetime.strptime(dateTimeStr, '%m/%d/%Y %H:%M:%S')
             dates.append(dateTimeObj)
         else:
-            data.append(int(100*float(tokens[0])))
+            data.append(float(tokens[0]))
     print ("\n")
     if(len(dates) == 0):
         dates = None
@@ -56,9 +56,9 @@ def saveData(data, filename, dates=None):
     with open(os.path.join(DATA_PATH, filename), 'w') as filehandle:
         for i in range(0, len(data)):
             if hasDates:
-                filehandle.write(str(dates[i])+","+str(float(data[i])/100)+"\n")
+                filehandle.write(str(dates[i])+","+str(data[i])+"\n")
             else:
-                filehandle.write(str(float(data[i])/100)+"\n")
+                filehandle.write(str(data[i])+"\n")
         filehandle.close()
 
 def clearTerminal():

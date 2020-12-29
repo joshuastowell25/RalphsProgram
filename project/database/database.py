@@ -67,7 +67,7 @@ def loadDataFromDatabase(dbConnection):
         cursor.execute("SELECT time, value FROM data")
         for (line) in cursor:
             dates.append(line[0])
-            data.append(int(float(line[1])*100))#deal with ints rather than floats
+            data.append(float(line[1]))
     except mariadb.Error as e:
         pass
         # print(f"Error loading column: {e}")

@@ -14,7 +14,7 @@ def chartData(data, dates = None):
         return dates[xlocation]
 
     x = range(0, len(data))
-    y = list(map(lambda x: x/100, data))
+    y = data
     fig, ax1 = pyplot.subplots(1, 1)
     ax1.plot(x, y)
     ax1.xaxis.set_major_formatter(ticker.FuncFormatter(format_date))
