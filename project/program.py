@@ -120,12 +120,14 @@ stat = {
     'maxWin': 4,
     'maxLoss': 5,
     'runningGt': 6,
-    'runningWins': 7,
-    'runningLosses': 8,
+    'runningWinCount': 7,
+    'runningLossCount': 8,
     'runningTies': 9,
     'runningTrades': 10,
     'runningMaxWin': 11,
-    'runningMaxLoss': 12
+    'runningMaxLoss': 12,
+    'runningWinTotal': 13,
+    'runningLossTotal': 14
 }    
 
 #minus Index is the index of the stats to NOT count in what gets printed
@@ -148,14 +150,32 @@ def printStats(stats, index, minusIndex = 0):
     
     banner = str("WIN COUNT:").ljust(headingWidth)
     for i in range(len(stats)):
-        value = stats[i][stat['runningWins']][index] - stats[i][stat['runningWins']][minusIndex]
+        value = stats[i][stat['runningWinCount']][index] - stats[i][stat['runningWinCount']][minusIndex]
         banner += str(value).rjust(10)
     print(banner)
     
     banner = str("LOSS COUNT:").ljust(headingWidth)
     for i in range(len(stats)):
-        value = stats[i][stat['runningLosses']][index] - stats[i][stat['runningLosses']][minusIndex]
+        value = stats[i][stat['runningLossCount']][index] - stats[i][stat['runningLossCount']][minusIndex]
         banner += str(value).rjust(10)
+    print(banner)
+
+    banner = str("AVG WIN:").ljust(headingWidth)
+    for i in range(len(stats)):
+        total = stats[i][stat['runningWinTotal']][index] - stats[i][stat['runningWinTotal']][minusIndex]
+        count = stats[i][stat['runningWinCount']][index] - stats[i][stat['runningWinCount']][minusIndex]
+        total = total / 100
+        value = total / count
+        banner += str(format(value, '.2f')).rjust(10)
+    print(banner)
+
+    banner = str("AVG LOSS:").ljust(headingWidth)
+    for i in range(len(stats)):
+        total = stats[i][stat['runningLossTotal']][index] - stats[i][stat['runningLossTotal']][minusIndex]
+        count = stats[i][stat['runningLossCount']][index] - stats[i][stat['runningLossCount']][minusIndex]
+        total = total / 100
+        value = total / count
+        banner += str(format(value, '.2f')).rjust(10)
     print(banner)
 
     banner = str("MAX WIN:").ljust(headingWidth)
@@ -172,8 +192,8 @@ def printStats(stats, index, minusIndex = 0):
 	
     banner = str("W/L RATIO:").ljust(headingWidth)
     for i in range(len(stats)):
-        winCount = stats[i][stat['runningWins']][index] - stats[i][stat['runningWins']][minusIndex]
-        lossCount = stats[i][stat['runningLosses']][index] - stats[i][stat['runningLosses']][minusIndex]
+        winCount = stats[i][stat['runningWinCount']][index] - stats[i][stat['runningWinCount']][minusIndex]
+        lossCount = stats[i][stat['runningLossCount']][index] - stats[i][stat['runningLossCount']][minusIndex]
         if(lossCount != 0):
             banner += str(format(float(winCount)/float(lossCount), '.2f')).rjust(10)
         else:
@@ -182,8 +202,8 @@ def printStats(stats, index, minusIndex = 0):
     
     banner = str("L/W RATIO:").ljust(headingWidth)
     for i in range(len(stats)):
-        winCount = stats[i][stat['runningWins']][index] - stats[i][stat['runningWins']][minusIndex]
-        lossCount = stats[i][stat['runningLosses']][index] - stats[i][stat['runningLosses']][minusIndex]
+        winCount = stats[i][stat['runningWinCount']][index] - stats[i][stat['runningWinCount']][minusIndex]
+        lossCount = stats[i][stat['runningLossCount']][index] - stats[i][stat['runningLossCount']][minusIndex]
         if(winCount != 0):
             banner += str(format(float(lossCount)/float(winCount), '.2f')).rjust(10)
         else:
@@ -211,6 +231,8 @@ def getColStats(data, syscol):
     runningTieCount=[]
     runningMaxWin=[]
     runningMaxLoss=[]
+    runningWinTotal=[]
+    runningLossTotal=[]
     tradeCount = 0
     winCount = 0
     lossCount = 0
@@ -295,7 +317,27 @@ def getColStats(data, syscol):
         runningMaxWin.append(maxWin/100)
         runningMaxLoss.append(maxLoss/100)
 
-    return [gt, tradeCount, winCount, lossCount, maxWin/100, maxLoss/100, runningGt, runningWinCount, runningLossCount, runningTieCount, runningTradeCount, runningMaxWin, runningMaxLoss] #internal representation of pennies is left of the decimal point
+        if(i > 0 and winloss < 0):
+            runningWinTotal.append(runningWinTotal[i - 1])
+            runningLossTotal.append(winloss + runningLossTotal[i - 1])
+        elif(i > 0 and winloss > 0):
+            runningWinTotal.append(winloss + runningWinTotal[i - 1])
+            runningLossTotal.append(runningLossTotal[i - 1])
+        elif(i == 0 and winloss < 0):
+            runningWinTotal.append(0)
+            runningLossTotal.append(winloss)
+        elif(i == 0 and winloss > 0):
+            runningWinTotal.append(winloss)
+            runningLossTotal.append(0)
+        elif(i > 0 and winloss == 0):
+            runningWinTotal.append(runningWinTotal[i-1])
+            runningLossTotal.append(runningLossTotal[i-1])
+        elif(i == 0 and winloss == 0):
+            runningLossTotal.append(0)
+            runningWinTotal.append(0)
+        winloss = 0
+
+    return [gt, tradeCount, winCount, lossCount, maxWin/100, maxLoss/100, runningGt, runningWinCount, runningLossCount, runningTieCount, runningTradeCount, runningMaxWin, runningMaxLoss, runningWinTotal, runningLossTotal] #internal representation of pennies is left of the decimal point
 
 def clearTerminal():
     import os
