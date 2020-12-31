@@ -213,14 +213,14 @@ def calcStats(data, syscols):
     start = time.time()
     result = []
     for i in range(len(syscols)):
-        result.append(getColStats(data, syscols[i]))
+        result.append(getColStats(data, syscols[i], data, data)) #for now just use market data as bid and ask price
     stop = time.time()
     diff = stop - start
     print("Calculated stats in " + "{:.2f}".format(diff) + " seconds")
     return result
     
 #calculates and returns stats for a particular column
-def getColStats(data, syscol):
+def getColStats(data, syscol, bid, ask):
     gt = 0
     runningGt=[]
     runningWinCount=[]
@@ -243,13 +243,16 @@ def getColStats(data, syscol):
     maxLoss = 0
     for i in range(len(syscol)):
         price = data[i]
-        if(syscol[i] > 0):
+        bidPrice = bid[i]
+        askPrice = ask[i]
+        if(syscol[i] > 0): #the system is long
             if(position == positions['flat']):
                 position = positions['long']
-                positionPrice = price
+                positionPrice = askPrice #you're going long so you're buying from the ASK
             elif(position == positions['short']):
-                #you've exited a short position
-                winloss = positionPrice - price
+                #you've exited a short position and you're going long. Short selling aka 'Shorting' is selling a stock you down own by borrowing it from your broker.
+                #So to exit a short position, in which you have sold a stock, you must now buy one back (at the asking price) to exit the position
+                winloss = positionPrice - askPrice
                 if winloss == 0:
                     tieCount += 1
                 elif winloss < 0:
@@ -259,14 +262,14 @@ def getColStats(data, syscol):
                 gt += winloss
                 tradeCount += 1
                 position = positions['long']
-                positionPrice = price
-        elif(syscol[i] < 0):
+                positionPrice = askPrice #you're going long so you're buying from the ASK
+        elif(syscol[i] < 0): #The system is short
             if(position == positions['flat']):
                 position = positions['short']
-                positionPrice = price
+                positionPrice = bidPrice #Short selling aka 'Shorting' is selling a stock you down own by borrowing it from your broker. You can only sell NOW at the highest bid price.
             elif(position == positions['long']):
-                #you've exited a long position
-                winloss = price - positionPrice
+                #you've exited a long position to go short
+                winloss = bidPrice - positionPrice #sell what you owned at the bidPrice
                 if winloss == 0:
                     tieCount += 1
                 elif winloss < 0:
@@ -276,11 +279,11 @@ def getColStats(data, syscol):
                 gt += winloss
                 tradeCount += 1
                 position = positions['short']
-                positionPrice = price
-        elif(syscol[i] == 0):
+                positionPrice = bidPrice #Short selling aka 'Shorting' is selling a stock you down own by borrowing it from your broker. You can only sell NOW at the highest bid price.
+        elif(syscol[i] == 0): #The system is FLAT (no position)
             if(position == positions['long']):
-                #you've exited a long position
-                winloss = price - positionPrice
+                #you've exited a long position to go flat
+                winloss = bidPrice - positionPrice #sell what you owned at the bidPrice
                 if winloss == 0:
                     tieCount += 1
                 elif winloss < 0:
@@ -290,8 +293,9 @@ def getColStats(data, syscol):
                 gt += winloss
                 tradeCount += 1
             elif(position == positions['short']):
-                #you've exited a short position
-                winloss = positionPrice - price
+                # you've exited a short position and you're going long. Short selling aka 'Shorting' is selling a stock you down own by borrowing it from your broker.
+                # So to exit a short position, in which you have sold a stock, you must now buy one back (at the asking price) to exit the position
+                winloss = positionPrice - askPrice
                 if winloss == 0:
                     tieCount += 1
                 elif winloss < 0:
@@ -301,7 +305,7 @@ def getColStats(data, syscol):
                 gt += winloss
                 tradeCount += 1
             position = positions['flat']
-            positionPrice = price
+            positionPrice = price #it's irrelevant what you make the positionPrice in a flat position. We'll just set it to the market price here.
         if(winloss > maxWin):
             maxWin = winloss
         elif(winloss < maxLoss):

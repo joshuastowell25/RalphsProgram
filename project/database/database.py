@@ -50,7 +50,7 @@ def loadColumn(dbConnection, colName):
     column = []
     cursor = dbConnection.cursor()
     try:
-        cursor.execute("SELECT CAST(value AS INTEGER) FROM " + colName)
+        cursor.execute("SELECT value FROM " + colName)
         for (item) in cursor:
             column.append(item[0])
     except mariadb.Error as e:
@@ -81,7 +81,7 @@ def loadDataFromDatabase(dbConnection):
 def saveColumn(dbConnection, col, tableName):
     cursor = dbConnection.cursor()
     try:
-        cursor.execute("CREATE TABLE IF NOT EXISTS " + tableName + " (value INT NOT NULL)");
+        cursor.execute("CREATE TABLE IF NOT EXISTS " + tableName + " (value FLOAT NOT NULL)");
 
         count = getCount(dbConnection, tableName)
 
