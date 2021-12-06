@@ -1,4 +1,4 @@
-#This is the config package
+#This is the config module
 
 #__init__.py files make python treat the directory they are in as a 'module'
 __all__ = ["configuration"] # controls what 'from config import *' does
