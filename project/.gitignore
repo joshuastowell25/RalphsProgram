@@ -1,3 +1,6 @@
 floatingHeaders.py
 __pycache__
 *.pyc
+*.swp
+*.bak
+data
