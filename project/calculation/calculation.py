@@ -1,5 +1,5 @@
-from definitions import MaTypes
-import database
+from ..constants import MaTypes
+from ..database import *
 maType = MaTypes.RalphStyle # the default desired moving average type
 
 

@@ -10,7 +10,7 @@ import charting
 import shutil               #shell utils to get the terminal height
 import settings             #the GOOD way to import from a file
 #from settings import *     #The BAD way to import from a file
-from definitions import MaTypes
+from ..constants import MaTypes
 
 #gets the number of lines in the terminal
 def screenHeight():

@@ -1,6 +1,6 @@
 import os
 import json
-from definitions import SAVED_SETUPS_PATH
+from ..constants import SAVED_SETUPS_PATH
 
 #'{"name": "mySystem1", "maType": "r", "systems": [[2], [4,10,20], [6]]}'
 class Setup:

@@ -1,5 +1,4 @@
-from definitions import SAVED_SETUPS_PATH
-import json
+from ..constants import SAVED_SETUPS_PATH
 
 #To import this file in python do: from systems import systemIO
 #Then you can do things like: systemIO.theFuncName()

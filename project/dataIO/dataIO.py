@@ -1,10 +1,7 @@
 import os
 import datetime
-import string
-
 import database
-import pandas
-from definitions import DATA_PATH
+from ..constants import DATA_PATH
 
 def getDataFromDatabase(dbConnection = None):
     while(dbConnection is None):
@@ -15,7 +12,6 @@ def getDataFromDatabase(dbConnection = None):
 
     data, dates = database.loadDataFromDatabase(dbConnection)
     return {'dates': dates, 'data': data, 'dbConnection': dbConnection}
-
 
 
 #gets an array of data from a particular file

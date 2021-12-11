@@ -1,7 +1,7 @@
 # Module Imports
 import mariadb
 import sys
-import config
+from ..config import getConfig
 
 #https://mariadb.com/resources/blog/how-to-connect-python-programs-to-mariadb/
 #database software: MariaDB
@@ -17,10 +17,10 @@ def getDbConnection(database):
     conn = None
     try:
         conn = mariadb.connect(
-            user=config.getConfig('DatabaseSection','db.user'),
-            password=config.getConfig('DatabaseSection','db.password'),
-            host=config.getConfig('DatabaseSection','db.host'),
-            port=int(config.getConfig('DatabaseSection','db.port')),
+            user=getConfig('DatabaseSection','db.user'),
+            password=getConfig('DatabaseSection','db.password'),
+            host=getConfig('DatabaseSection','db.host'),
+            port=int(getConfig('DatabaseSection','db.port')),
             database=database
         )
     except mariadb.Error as e:
@@ -32,10 +32,10 @@ def createDatabase(databaseName):
     print("Creating database: "+databaseName)
     try:
         conn = mariadb.connect(
-            user=config.getConfig('DatabaseSection', 'db.user'),
-            password=config.getConfig('DatabaseSection', 'db.password'),
-            host=config.getConfig('DatabaseSection', 'db.host'),
-            port=int(config.getConfig('DatabaseSection', 'db.port'))
+            user=getConfig('DatabaseSection', 'db.user'),
+            password=getConfig('DatabaseSection', 'db.password'),
+            host=getConfig('DatabaseSection', 'db.host'),
+            port=int(getConfig('DatabaseSection', 'db.port'))
         )
         cursor = conn.cursor()
         cursor.execute("create database "+databaseName)
