@@ -24,12 +24,15 @@ def calcSysCol(sys, data, dbConnection):
         startMillis = int(round(time.time() * 1000))
         adtl = ""
         if maType == MaTypes.RalphStyle:
-            numcol = database.loadColumn(dbConnection, "_"+str(sys[i])) #load the calculated column
+            numcol = []
+            if(dbConnection is not None):
+                numcol = database.loadColumn(dbConnection, "_"+str(sys[i])) #load the calculated column
             if(len(numcol)==len(data)):
                 adtl="Via database load. "
             if(len(numcol) < len(data)):
                 numcol = calculateColumnRalphsMA(sys[i], data, numcol) #update the calculation
-            database.saveColumn(dbConnection, numcol, "_"+str(sys[i])) #save the updated calculation into the database
+            if(dbConnection is not None):
+                database.saveColumn(dbConnection, numcol, "_"+str(sys[i])) #save the updated calculation into the database
         elif maType == MaTypes.NormalStyle:
             numcol = calculateColumnNormalMA(sys[i], data)
         endMillis = int(round(time.time() * 1000))
