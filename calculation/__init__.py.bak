@@ -1,0 +1,16 @@
+<<<<<<< HEAD
+#This is the calculation PACKAGE
+=======
+#This is the calculation module
+>>>>>>> 32f0e0869a643262a7d2660521944af3d0b56231
+
+#__init__.py files make python treat the directory they are in as a 'module'
+__all__ = ["calculation"] # controls what 'from data import *' does
+
+#control what 'import calculation' actually does.
+<<<<<<< HEAD
+#.calculation is the calculation.py file. This is also known as a module. project > package > module
+from .calculation import calcSysCols, calculateColumnRalphsMA
+=======
+from .calculation import calcSysCols, calculateColumnRalphsMA
+>>>>>>> 32f0e0869a643262a7d2660521944af3d0b56231
