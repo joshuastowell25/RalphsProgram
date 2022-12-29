@@ -7,24 +7,26 @@ from config import getConfig
 #database software: MariaDB
 #use the mariaDb MySQL client: HeidiSQL or MySQL Workbench
 #login with root:root
-#type: use sp2000
-#type: show tables
+#type: show databases  to see all the available company names
+#type: use sp2000, use sp, use es, etc to select a company name
+#type: show tables  to see the available tables such as: data, _2, _4, _6, etc.
 #type select * from _2
 
 # Connect to MariaDB Platform where the database is the name of the data file being used.
 # the database name given is generally a 'company name' e.g.:es, sp1985, etc.
-def getDbConnection(database):
+def getDbConnection(companyName):
     conn = None
+    print("Attempting to connect, please wait")
     try:
         conn = mariadb.connect(
             user=getConfig('DatabaseSection','db.user'),
             password=getConfig('DatabaseSection','db.password'),
             host=getConfig('DatabaseSection','db.host'),
             port=int(getConfig('DatabaseSection','db.port')),
-            database=database
+            database=companyName
         )
     except mariadb.Error as e:
-        print(f"Error connecting to MariaDB: {e}")
+        print(f"Error connecting to MariaDB: {e}. Has the database IP address changed or is the server powered down?")
 
     return conn
 
@@ -46,7 +48,7 @@ def createDatabase(databaseName):
         print(f"Error connecting to MariaDB Platform: {e}")
         sys.exit(1)
 
-def loadColumn(dbConnection, colName):
+def loadMaColumn(dbConnection, colName):
     column = []
     cursor = dbConnection.cursor()
     try:
@@ -59,6 +61,13 @@ def loadColumn(dbConnection, colName):
 
     return column
 
+def getCompanyList():
+    companyList = []
+    #TODO
+
+    return companyList
+
+#Each "company" aka database has several tables. The 'main' table is called 'data' the other tables are where the calculated moving averages lie.
 def loadDataFromDatabase(dbConnection):
     data=[]
     dates=[]
@@ -73,6 +82,33 @@ def loadDataFromDatabase(dbConnection):
         # print(f"Error loading column: {e}")
 
     return data, dates
+
+#dt is a python datetime type, datum is the price of the stock
+def writeDatumToDatabase(dbConnection, dt, datum):
+    dt.strftime('%Y-%m-%d %H:%M:%S')
+    cursor = dbConnection.cursor()
+    try:
+        cursor.execute(f"INSERT INTO data (time, value) VALUES ({dt.strftime('%Y-%m-%d %H:%M:%S')}, {datum});")
+    except mariadb.Error as e:
+        print(f"Exception occurred inserting data into database: {e}\n")
+        pass
+
+#dtList is a list of datetime objects associated with the dataList
+def writeDataToDatabase(dbConnection, dtList, dataList):
+    pass #TODO
+
+def updateDatumInDatabase(dbConnection, tableName, incrementNumber, dt, datum):
+    cursor = dbConnection.cursor()
+    try:
+        #TODO: need to format dt as yyyy-mm-dd 16:00:00
+        ymd = dt.strftime("%Y-%m-%d")
+        cursor.execute(f"UPDATE data SET value={datum} WHERE time='{ymd} 16:00:00'")
+    except mariadb.Error as e:
+        print(f"Error updating column: {e}")
+    #TODO: need to be able to update all the already calculated moving average columns when updating an old piece of data.
+    #this will involve updating the calculation of all columns from incrementNumber-1 to incrementNumber-1+theDivisorNumber
+    #E.g. for updating the _50 column, you would have to update calculated column indicies i-1 to i-1+50
+
 
 #inserts new data into the database for the given divisor column.
 # conn: the dbConnection

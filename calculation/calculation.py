@@ -15,32 +15,32 @@ def calcSysCols(systems, data, dbConnection):
 
 
 # given a list of numbers to comprise a system, calculates that system's column
-def calcSysCol(sys, data, dbConnection):
+def calcSysCol(divisors, data, dbConnection):
     global maType
     import time
 
-    col = [0] * len(data)
-    for i in range(len(sys)):
+    result = [0] * len(data)
+    for divisor in divisors:
         startMillis = int(round(time.time() * 1000))
         adtl = ""
         if maType == MaTypes.RalphStyle:
             numcol = []
             if(dbConnection is not None):
-                numcol = database.loadColumn(dbConnection, "_"+str(sys[i])) #load the calculated column
+                numcol = database.loadMaColumn(dbConnection, "_" + str(divisor)) #load the calculated column
             if(len(numcol)==len(data)):
                 adtl="Via database load. "
             if(len(numcol) < len(data)):
-                numcol = calculateColumnRalphsMA(sys[i], data, numcol) #update the calculation
+                numcol = calculateColumnRalphsMA(divisor, data, numcol) #update the calculation
             if(dbConnection is not None):
-                database.saveColumn(dbConnection, numcol, "_"+str(sys[i])) #save the updated calculation into the database
+                database.saveColumn(dbConnection, numcol, "_"+str(divisor)) #save the updated calculation into the database
         elif maType == MaTypes.NormalStyle:
-            numcol = calculateColumnNormalMA(sys[i], data)
+            numcol = calculateColumnNormalMA(divisor, data)
         endMillis = int(round(time.time() * 1000))
-        print("calculated number: "+str(sys[i])+" in "+str(endMillis - startMillis)+" milliseconds. "+adtl)
+        print("calculated number: "+str(divisor)+" in "+str(endMillis - startMillis)+" milliseconds. "+adtl)
 
-        for j in range(len(numcol)):
-            col[j] += numcol[j]
-    return col
+        for j in range(len(data)):
+            result[j] += numcol[j]
+    return result
 
 
 # given a single divisor number calculates the result of that number on the data
@@ -48,11 +48,10 @@ def calcSysCol(sys, data, dbConnection):
 def calculateColumnRalphsMA(num, data, result):
     part = num // 2  # integer division is done with //
 
-    originalColLength = len(result)
-    offset = max(num, originalColLength)
-
     if (result is None):
         result = [0] * len(data)
+
+    offset = max(num, len(result)) #only recalculate what needs to be recalculated
 
     #extend the col size
     if(len(result) < len(data)):
@@ -97,6 +96,8 @@ def calculateColumnNormalMA(num, data):
 
         frontNum = data[i]
         sum += frontNum  # add index 20
+
+        #note the two different ways you can do the following:
         col[i] = data[i] - (sum / num)  # this ma vs todays close
         # col[i] = (sum/num)            # because regular moving average
 

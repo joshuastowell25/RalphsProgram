@@ -1,0 +1,33 @@
+{
+  "security": {
+    "name": "sp500",
+    "frequency": "1d"
+  },
+  "systems": [
+    {
+      "maType": "splitMa",
+      "divisors": [
+        [2,4,6,8],
+        [20,22,24,26],
+        [98,100,102],
+        [10]
+      ],
+      "versus": [
+        [0,1],
+        [2,3]
+      ],
+      "confirmations": [
+        [0,1,2]
+      ]
+    },
+    {
+      "maType": "traditionalMA",
+      "divisors": [
+        [2,4,6,8],
+        [20,22,24,26],
+        [98,100,102],
+        [10]
+      ]
+    }
+  ]
+}

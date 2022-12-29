@@ -4,7 +4,7 @@ import dataIO as dataIO
 try:
     data, filename, dates = dataIO.getDataFromFile()
     outname = input("what should be the output filename?")
-    dataIO.saveData(data, outname, dates)
+    dataIO.saveDataToFile(data, outname, dates)
 
 except Exception as e:
     print(f"Error: {e}")

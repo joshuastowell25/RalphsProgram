@@ -11,6 +11,8 @@ import shutil               #shell utils to get the terminal height
 import settings             #the GOOD way to import from a file
 #from settings import *     #The BAD way to import from a file
 from constants import MaTypes
+from systems import printSystems
+from string import ascii_uppercase
 
 #gets the number of lines in the terminal
 def screenHeight():
@@ -138,7 +140,7 @@ def printStats(stats, index, minusIndex = 0):
     print(splitter+"\n")
     banner = str("GRAND TOTAL:").ljust(headingWidth)
     for i in range(len(stats)):
-        value = stats[i][stat['runningGt']][index] - stats[i][stat['runningGt']][minusIndex]
+        value = round(stats[i][stat['runningGt']][index] - stats[i][stat['runningGt']][minusIndex], 2)
         banner += str(value).rjust(10)  # data is adjusted prior to this to have pennies to the left of the decimal, move them back right by dividing by 100
     print(banner)
     
@@ -376,7 +378,7 @@ def main():
             indexes = getVsIndexes()            #if they choose ab, returns list of those indices: [0,1]
             versusSystems.append(indexes)
             vscol = calcVsCol(syscols, indexes)
-            print ("\'"+str(chr(indexes[0]+65)).lower()+" played against "+str(chr(indexes[1]+65)).lower()+"\' was placed in column "+str(chr(len(syscols)+65)).lower()+"\n\n")
+            print ("\'"+ascii_uppercase[indexes[0]]+" confirming "+ascii_uppercase[indexes[1]]+"\' was placed in column "+ascii_uppercase[len(syscols)]+"\n\n")
             syscols.append(vscol)
             count += 1
             
@@ -392,7 +394,7 @@ def main():
             indexes = getConfirmationIndexes()      #if they choose ab, returns list of those indices: [0,1]
             confirmationSystems.append(indexes)
             confcol = calcConfCol(syscols, indexes)
-            print ("\'"+str(chr(indexes[0]+65)).lower()+" confirming "+str(chr(indexes[1]+65)).lower()+"\' was placed in column "+str(chr(len(syscols)+65)).lower()+"\n\n")
+            print ("\'"+ascii_uppercase[indexes[0]]+" confirming "+ascii_uppercase[indexes[1]]+"\' was placed in column "+ascii_uppercase[len(syscols)]+"\n\n")
             syscols.append(confcol)   
             count += 1
 
@@ -401,6 +403,7 @@ def main():
     currentLine = len(data)-screenHeight()
     printCols(data, dates, syscols, currentLine)
     stats = calcStats(data, syscols)
+    printSystems(systems, versusSystems, confirmationSystems)
     printStats(stats, len(data) - 1)
     
     command = 0
@@ -426,6 +429,7 @@ def main():
                 syscols.append(confcol)
             printCols(data, dates, syscols, currentLine)
             stats = calcStats(data, syscols)
+            printSystems(systems, versusSystems, confirmationSystems)
             printStats(stats, len(data) - 1)
         elif command == 'chart':
             whichSys = 1
@@ -442,6 +446,7 @@ def main():
                 currentLine = int(whichInc) - screenHeight()
 
             printCols(data, dates, syscols, currentLine)
+            printSystems(systems, versusSystems, confirmationSystems)
             printStats(stats, int(whichInc) - 1)
         elif command == 'r': #Restart
             clearTerminal()
@@ -450,6 +455,7 @@ def main():
             sys.enterSystemsMenu(systems)
             #now they've returned
             printCols(data, dates, syscols, currentLine)
+            printSystems(systems, versusSystems, confirmationSystems)
             printStats(stats, len(data) - 1)
         elif command == 't':
             earliestDate = dates[0]
@@ -502,10 +508,12 @@ def main():
             syscolsTrimmed = [subcol[startIndex:endIndex+1] for subcol in syscols]
             printCols(data[startIndex:endIndex+1], dates[startIndex:endIndex+1], syscolsTrimmed, currentLine, startIndex)
             stats = calcStats(data, syscols)
+            printSystems(systems, versusSystems, confirmationSystems)
             printStats(stats, endIndex+1, startIndex)
         elif command == 'g': #Grand Totals
             printCols(data, dates, syscols, currentLine)
             stats = calcStats(data, syscols)
+            printSystems(systems, versusSystems, confirmationSystems)
             printStats(stats, len(data) - 1)
 
 try:

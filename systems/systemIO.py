@@ -1,12 +1,32 @@
 import constants as const
+from string import ascii_uppercase
 
 #To import this file in python do: from systems import systemIO
 #Then you can do things like: systemIO.theFuncName()
 
 #print the users system(s) that are currently entered
-def printSystems(systems):
-    for system in systems:
-        print(system)
+def printSystems(systems, versusSystems, confirmationSystems):
+    headingWidth = 43
+    columnWidth = 10
+
+    for i in range(max([len(system) for system in systems])):
+        line = str("DIVISORS:").ljust(headingWidth)
+        for j in range(len(systems)):
+            line += ascii_uppercase[j].rjust(10)
+        for system in versusSystems:
+            line += (ascii_uppercase[system[0]]+ascii_uppercase[system[1]]).rjust(10)
+        for system in confirmationSystems:
+            line += (ascii_uppercase[system[0]]+ascii_uppercase[system[1]]).rjust(10)
+        print(line)
+
+        line = str("").ljust(headingWidth)
+        for system in systems:
+            divisor = system[i] if i < len(system) else None
+            line += str(divisor).rjust(10)
+        print(line)
+
+    #for system in systems:
+    #    print(system)
 
 #Lists the names of the saved systems so the user can select one to open
 def listSavedSystems():
