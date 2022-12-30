@@ -92,13 +92,12 @@ def dataMenu(dbConnection = None):
             while date_input is None or value_input is None:
                 try:
                     date_input = input("What date is your new data for? Enter in this format: mm/dd/yyyy")
-                    datetime_object = datetime.strptime(date_input, '%m/%d/%y')
-                    value_input = input("What is the price of the company?")
+                    datetime_object = datetime.strptime(date_input, '%m/%d/%y').replace(hour=16, minute=00) #assume closing time (4pm eastern time)
+                    value_input = input("What is the price?")
                     datum = float(value_input)
                     database.writeDatumToDatabase(dbConnection, datetime_object, datum)
                 except Exception as e:
                     date_input = None
                     value_input = None
                     print("Malformed date or data input. Try again!")
-
             return

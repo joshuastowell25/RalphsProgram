@@ -88,10 +88,17 @@ def writeDatumToDatabase(dbConnection, dt, datum):
     dt.strftime('%Y-%m-%d %H:%M:%S')
     cursor = dbConnection.cursor()
     try:
+        #TODO: check that the time they've given is AFTER the latest datum's time
         cursor.execute(f"INSERT INTO data (time, value) VALUES ({dt.strftime('%Y-%m-%d %H:%M:%S')}, {datum});")
     except mariadb.Error as e:
         print(f"Exception occurred inserting data into database: {e}\n")
         pass
+
+def getLatest(dbConnection):
+    id = None
+    time = None
+    value = None
+    return {"id": id, "time": time, "value": value}
 
 #dtList is a list of datetime objects associated with the dataList
 def writeDataToDatabase(dbConnection, dtList, dataList):
