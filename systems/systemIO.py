@@ -1,5 +1,6 @@
 import constants as const
 from string import ascii_uppercase
+import re
 
 #To import this file in python do: from systems import systemIO
 #Then you can do things like: systemIO.theFuncName()
@@ -90,13 +91,18 @@ def getSystems():
 #sys is the column index into the system columns (0=system A, 1=system B, ...)
 def getSysNumbers(sys): 
     system = []
-    val = 0
-    while val != 'q':
-        val = input("Enter numbers for system "+str(chr(sys+65)).lower()+" (q to finish) ") #65 is ascii A
-        if val != 'q':
+    quit = False
+    while quit is False:
+        val = input("Enter numbers for system "+str(chr(sys+65)).lower()+" (q to finish) ")
+
+        vals = re.findall(r"[\w']+", val)
+        for val in vals:
             try:
-                system.append(int(val))
+                system.append(int(val.replace("q","")))
             except:
-                print ("BAD INPUT!")
+                pass
+            if "q" in val:
+                quit = True
+
     print ("\n" )
     return system
