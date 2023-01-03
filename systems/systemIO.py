@@ -10,19 +10,20 @@ def printSystems(systems, versusSystems, confirmationSystems):
     headingWidth = 43
     columnWidth = 10
 
-    for i in range(max([len(system) for system in systems])):
-        line = str("DIVISORS:").ljust(headingWidth)
-        for j in range(len(systems)):
-            line += ascii_uppercase[j].rjust(columnWidth)
-        for system in versusSystems:
-            line += (ascii_uppercase[system[0]]+ascii_uppercase[system[1]]).rjust(columnWidth)
-        for system in confirmationSystems:
-            line += (ascii_uppercase[system[0]]+ascii_uppercase[system[1]]).rjust(columnWidth)
-        print(line)
+    line = str("DIVISORS:").ljust(headingWidth)
+    for j in range(len(systems)):
+        line += ascii_uppercase[j].rjust(columnWidth)
+    for system in versusSystems:
+        line += (ascii_uppercase[system[0]] + ascii_uppercase[system[1]]).rjust(columnWidth)
+    for system in confirmationSystems:
+        line += (ascii_uppercase[system[0]] + ascii_uppercase[system[1]]).rjust(columnWidth)
+    print(line)
 
+
+    for i in range(max([len(system) for system in systems])):
         line = str("").ljust(headingWidth)
         for system in systems:
-            divisor = system[i] if i < len(system) else None
+            divisor = system[i] if i < len(system) else ''
             line += str(divisor).rjust(columnWidth)
         print(line)
 
@@ -39,7 +40,7 @@ def listSavedSystems():
 #prints the saved divisors in the given sys file
 def printSavedSys(filename):
     import os
-    file_handle = open(os.path.join(SAVED_SETUPS_PATH, filename), 'r')
+    file_handle = open(os.path.join(const.SAVED_SETUPS_PATH, filename), 'r')
     lines_list = file_handle.readlines()
     for line in lines_list:
         print(line)

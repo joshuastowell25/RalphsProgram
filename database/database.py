@@ -61,10 +61,20 @@ def loadMaColumn(dbConnection, colName):
 
     return column
 
-def getCompanyList():
+def getCompanyList(dbConnection):
     companyList = []
-    #TODO
-
+    cursor = dbConnection.cursor()
+    try:
+        cursor.execute("show databases")
+        companyList = [tup[0] for tup in cursor.fetchall()]
+        while 'information_schema' in companyList:
+            companyList.remove('information_schema')
+        while 'performance_schema' in companyList:
+            companyList.remove('performance_schema')
+        while 'mysql' in companyList:
+            companyList.remove('mysql')
+    except mariadb.Error as e:
+        pass
     return companyList
 
 #Each "company" aka database has several tables. The 'main' table is called 'data' the other tables are where the calculated moving averages lie.
@@ -88,17 +98,25 @@ def writeDatumToDatabase(dbConnection, dt, datum):
     dt.strftime('%Y-%m-%d %H:%M:%S')
     cursor = dbConnection.cursor()
     try:
-        #TODO: check that the time they've given is AFTER the latest datum's time
-        cursor.execute(f"INSERT INTO data (time, value) VALUES ({dt.strftime('%Y-%m-%d %H:%M:%S')}, {datum});")
+        latest = getLatest(dbConnection)
+        if(dt > latest['time']):
+            cursor.execute(f"INSERT INTO data (time, value) VALUES ({dt.strftime('%Y-%m-%d %H:%M:%S')}, {datum})")
+        else:
+            print("The given date was not later than the latest date already recorded. Try again.")
+
     except mariadb.Error as e:
         print(f"Exception occurred inserting data into database: {e}\n")
         pass
 
 def getLatest(dbConnection):
-    id = None
-    time = None
-    value = None
-    return {"id": id, "time": time, "value": value}
+    cursor = dbConnection.cursor()
+    try:
+        cursor.execute(f"select * from data where id = (select count(*) from data);")
+        query_result = cursor.fetchone()
+        return {"id": query_result[0], "time": query_result[1], "value": query_result[2]}
+    except mariadb.Error as e:
+        print(f"Exception occurred: {e}")
+        return None
 
 #dtList is a list of datetime objects associated with the dataList
 def writeDataToDatabase(dbConnection, dtList, dataList):

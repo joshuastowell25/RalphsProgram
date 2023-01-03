@@ -1,10 +1,12 @@
 import configparser
 import os
-configFile = 'config.ini'
 
-cwd = os.getcwd()
+
+cwd = os.getcwd().split('RalphsProgram')[0]
 config = configparser.RawConfigParser()
-configPath = os.path.join(cwd, configFile)
+
+configPath = os.path.join(cwd, 'RalphsProgram', 'config.ini')
+print(f"Reading config from: {configPath}")
 config.read(configPath)
 
 def getConfig(section, propName):

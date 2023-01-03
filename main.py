@@ -119,13 +119,12 @@ def printStats(stats, endIndex, startIndex=0):
     banner = str('GRAND TOTAL:').ljust(headingWidth)
     for stat in stats:
         value = stat['runningGt'][endIndex] - stat['runningGt'][startIndex]
-        banner += str(value).rjust(
-            10)  # data is adjusted prior to this to have pennies to the left of the decimal, move them back right by dividing by 100
+        banner += str(format(value, '.2f')).rjust(10)  # data is adjusted prior to this to have pennies to the left of the decimal, move them back right by dividing by 100
     print(banner)
 
     banner = str('TRADE COUNT:').ljust(headingWidth)
     for stat in stats:
-        value = stat['runningTrades'][endIndex] - stat['runningTrades'][startIndex]
+        value = stat['runningTradeCount'][endIndex] - stat['runningTradeCount'][startIndex]
         banner += str(value).rjust(10)
     print(banner)
 
