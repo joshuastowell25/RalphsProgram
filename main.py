@@ -462,7 +462,7 @@ def main():
             clearTerminal()
             main()
         elif command == 's':
-            sys.enterSystemsMenu(systems)
+            sys.enterSystemsMenu(systems, versusSystems, confirmationSystems)
             # now they've returned
             printCols(data, dates, syscols, currentLine)
             printSystems(systems, versusSystems, confirmationSystems)

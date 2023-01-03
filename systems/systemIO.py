@@ -58,7 +58,7 @@ def keyContinue():
 
 #displays the commands for the systems menu. 
 #arg1: systems: Given to the systems menu for printing
-def enterSystemsMenu(systems):
+def enterSystemsMenu(systems, versusSystems, confirmationSystems):
     clearTerminal()
     command = 0
     print("Welcome to the systems menu. Please select from the following options:")
@@ -69,7 +69,7 @@ def enterSystemsMenu(systems):
         elif command == 'v':
             listSavedSystems()
         elif command == 's':
-            printSystems(systems)
+            printSystems(systems, versusSystems, confirmationSystems)
         keyContinue()
 
 #asks the user how many number systems they want
