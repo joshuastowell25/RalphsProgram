@@ -1,7 +1,8 @@
+import datetime
 import unittest
 
-from dataIO.dataIO import take_user_data_input
-from database.database import getLatest, getDbConnection, getCompanyList
+from dataIO.dataIO import take_user_data_input, take_user_file_input
+from database.database import getLatest, getDbConnection, getCompanyList, writeDatumToDatabase
 
 
 class DbTestClass(unittest.TestCase):
@@ -17,6 +18,13 @@ class DbTestClass(unittest.TestCase):
         print(companyList)
         pass
 
-    def test_data_entry(self):
+    def test_take_user_data_input(self):
         take_user_data_input(getDbConnection("sp"))
-        pass
+
+    def test_take_user_file_input(self):
+        take_user_file_input(getDbConnection("sp"), "./testData.csv")
+
+    def test_writeDatumToDatabase(self):
+        conn = getDbConnection("sp")
+        writeDatumToDatabase(conn, datetime.datetime.now(), 9999.99)
+        conn.commit()

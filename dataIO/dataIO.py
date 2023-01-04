@@ -86,6 +86,22 @@ def dataMenu(dbConnection = None):
         elif command == 'l':
             pass #TODO
 
+def take_user_file_input(dbConnection, file_path=None):
+    print("DATA FILE INPUT MENU")
+    if file_path is None:
+        file_path = input("Enter the fully qualified file path containing data in the form mm/dd/yyyy, price")
+    with open(file_path) as file:
+        line = file.readline()
+        while line is not None:
+            if len(line) > 10:
+                data = line.split(",")
+                datetime_object = datetime.strptime(data[0], '%m/%d/%Y').replace(hour=16,minute=00)  # assume closing time (4pm eastern time)
+                price = data[1]
+                database.writeDatumToDatabase(dbConnection, datetime_object, price)
+                line = file.readline()
+    dbConnection.commit()
+
+
 def take_user_data_input(dbConnection):
     print("DATA ENTRY MENU")
     # TODO: determine if the current dbConnection is for daily, hourly, minute, second, etc type data
@@ -112,6 +128,7 @@ def take_user_data_input(dbConnection):
             confirm_input = input(f"Does this look right? The price at {datetime_object} was {datum}. Enter y or n")
             if confirm_input == 'y':
                 database.writeDatumToDatabase(dbConnection, datetime_object, datum)
+                dbConnection.commit()
             else:
                 take_user_data_input(dbConnection)
 

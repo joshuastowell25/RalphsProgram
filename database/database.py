@@ -100,7 +100,9 @@ def writeDatumToDatabase(dbConnection, dt, datum):
     try:
         latest = getLatest(dbConnection)
         if(dt > latest['time']):
-            cursor.execute(f"INSERT INTO data (time, value) VALUES ({dt.strftime('%Y-%m-%d %H:%M:%S')}, {datum})")
+            query = f"INSERT INTO data (time, value) VALUES ('{dt.strftime('%Y-%m-%d %H:%M:%S')}', {datum})"
+            cursor.execute(query)
+            dbConnection.commit()
         else:
             print("The given date was not later than the latest date already recorded. Try again.")
 
@@ -111,7 +113,7 @@ def writeDatumToDatabase(dbConnection, dt, datum):
 def getLatest(dbConnection):
     cursor = dbConnection.cursor()
     try:
-        cursor.execute(f"select * from data where id = (select count(*) from data);")
+        cursor.execute(f"select * from data where time = (select max(time) from data);")
         query_result = cursor.fetchone()
         return {"id": query_result[0], "time": query_result[1], "value": query_result[2]}
     except mariadb.Error as e:
