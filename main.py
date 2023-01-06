@@ -144,7 +144,7 @@ def printStats(stats, endIndex, startIndex=0):
     for stat in stats:
         total = stat['runningWinTotal'][endIndex] - stat['runningWinTotal'][startIndex]
         count = stat['runningWinCount'][endIndex] - stat['runningWinCount'][startIndex]
-        value = total / count
+        value = total/count if count != 0 else 0
         banner += str(format(value, '.2f')).rjust(10)
     print(banner)
 
@@ -152,7 +152,7 @@ def printStats(stats, endIndex, startIndex=0):
     for stat in stats:
         total = stat['runningLossTotal'][endIndex] - stat['runningLossTotal'][startIndex]
         count = stat['runningLossCount'][endIndex] - stat['runningLossCount'][startIndex]
-        value = total / count
+        value = total/count if count != 0 else 0
         banner += str(format(value, '.2f')).rjust(10)
     print(banner)
 
@@ -163,7 +163,7 @@ def printStats(stats, endIndex, startIndex=0):
     print(banner)
 
     banner = str('MAX LOSS:').ljust(headingWidth)
-    for i in range(len(stats)):
+    for stat in stats:
         value = stat['runningMaxLoss'][endIndex] - stat['runningMaxLoss'][startIndex]
         banner += str(format(value, '.2f')).rjust(10)
     print(banner)
@@ -359,11 +359,11 @@ def main():
     maType = getMaType(settings.defaultMaType)  # gets and sets the global moving average type
     result = dataIO.getDataFromDatabase()
     dbConnection = result['dbConnection']
-    data = result['data']
+    priceData = result['data']
     dates = result['dates']
 
     systems = sys.getSystems()
-    syscols = calculation.calcSysCols(systems, data, dbConnection)
+    syscols = calculation.calcSysCols(systems, priceData, dbConnection)
 
     count = 0
     doVersus = settings.doVersusDefault
@@ -409,11 +409,11 @@ def main():
 
     if (settings.immediateResults == False):
         input("\nPress Enter to view columns...\n")
-    currentLine = len(data) - screenHeight()
-    printCols(data, dates, syscols, currentLine)
-    stats = calcStats(data, syscols)
+    currentLine = len(priceData) - screenHeight()
+    printCols(priceData, dates, syscols, currentLine)
+    stats = calcStats(priceData, syscols)
     printSystems(systems, versusSystems, confirmationSystems)
-    printStats(stats, len(data) - 1)
+    printStats(stats, len(priceData) - 1)
 
     command = 0
     while command != 'q':
@@ -426,36 +426,36 @@ def main():
             dbConnection.close()
             result = dataIO.getDataFromDatabase()
             dbConnection = result['dbConnection']
-            data = result['data']
+            priceData = result['data']
             dates = result['dates']
 
             clearTerminal()
-            syscols = calculation.calcSysCols(systems, data, dbConnection)
+            syscols = calculation.calcSysCols(systems, priceData, dbConnection)
             for indexes in versusSystems:
                 vscol = calcVsCol(syscols, indexes)
                 syscols.append(vscol)
             for indexes in confirmationSystems:
                 confcol = calcConfCol(syscols, indexes)
                 syscols.append(confcol)
-            printCols(data, dates, syscols, currentLine)
-            stats = calcStats(data, syscols)
+            printCols(priceData, dates, syscols, currentLine)
+            stats = calcStats(priceData, syscols)
             printSystems(systems, versusSystems, confirmationSystems)
-            printStats(stats, len(data) - 1)
+            printStats(stats, len(priceData) - 1)
         elif command == 'chart':
             whichSys = 1
             if (len(stats) > 1):
                 whichSys = int(input("Which system do you want to chart? (e.g. 1, 2, 5, etc) "))
             runningGt = stats[whichSys - 1]['runningGt']
-            charting.chartData(runningGt, dates)
+            charting.chartData(priceData, runningGt, dates)
         elif command == '6':
             whichInc = input("What increment do you want to go to? (q to exit, e for end increment) ")
             if (whichInc == "e"):
-                currentLine = len(data) - screenHeight()
-                whichInc = len(data)
+                currentLine = len(priceData) - screenHeight()
+                whichInc = len(priceData)
             else:
                 currentLine = int(whichInc) - screenHeight()
 
-            printCols(data, dates, syscols, currentLine)
+            printCols(priceData, dates, syscols, currentLine)
             printSystems(systems, versusSystems, confirmationSystems)
             printStats(stats, int(whichInc) - 1)
         elif command == 'r':  # Restart
@@ -464,9 +464,9 @@ def main():
         elif command == 's':
             sys.enterSystemsMenu(systems, versusSystems, confirmationSystems)
             # now they've returned
-            printCols(data, dates, syscols, currentLine)
+            printCols(priceData, dates, syscols, currentLine)
             printSystems(systems, versusSystems, confirmationSystems)
-            printStats(stats, len(data) - 1)
+            printStats(stats, len(priceData) - 1)
         elif command == 't':
             earliestDate = dates[0]
             latestDate = dates[len(dates) - 1]
@@ -516,16 +516,16 @@ def main():
             startIndex = dates.index(firstDate)
             endIndex = dates.index(lastDate)
             syscolsTrimmed = [subcol[startIndex:endIndex + 1] for subcol in syscols]
-            printCols(data[startIndex:endIndex + 1], dates[startIndex:endIndex + 1], syscolsTrimmed, currentLine,
+            printCols(priceData[startIndex:endIndex + 1], dates[startIndex:endIndex + 1], syscolsTrimmed, currentLine,
                       startIndex)
-            stats = calcStats(data, syscols)
+            stats = calcStats(priceData, syscols)
             printSystems(systems, versusSystems, confirmationSystems)
             printStats(stats, endIndex+1, startIndex)
         elif command == 'g': #Grand Totals
-            printCols(data, dates, syscols, currentLine)
-            stats = calcStats(data, syscols)
+            printCols(priceData, dates, syscols, currentLine)
+            stats = calcStats(priceData, syscols)
             printSystems(systems, versusSystems, confirmationSystems)
-            printStats(stats, len(data) - 1)
+            printStats(stats, len(priceData) - 1)
 
 
 try:

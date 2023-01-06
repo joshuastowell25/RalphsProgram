@@ -22,7 +22,7 @@ class DbTestClass(unittest.TestCase):
         take_user_data_input(getDbConnection("sp"))
 
     def test_take_user_file_input(self):
-        take_user_file_input(getDbConnection("sp"), "./testData.csv")
+        take_user_file_input(getDbConnection("sp"), "./sp500.csv")
 
     def test_writeDatumToDatabase(self):
         conn = getDbConnection("sp")
