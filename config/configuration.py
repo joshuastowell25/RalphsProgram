@@ -1,7 +1,6 @@
 import configparser
 import os
 
-
 cwd = os.getcwd().split('RalphsProgram')[0]
 config = configparser.RawConfigParser()
 

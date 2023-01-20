@@ -1,29 +1,30 @@
 import constants as const
 from string import ascii_uppercase
 import re
+from domain import System, Systems, systemTypes
 
-#To import this file in python do: from systems import systemIO
-#Then you can do things like: systemIO.theFuncName()
+
+class systemKeys:
+    DIVISORS = "divisors",
+    TYPE = "type"
+    CUMULATIVE_TOTAL = "cumulative_total"
 
 #print the users system(s) that are currently entered
-def printSystems(systems, versusSystems, confirmationSystems):
+def printSystems(systems: Systems):
     headingWidth = 43
     columnWidth = 10
-
+    #print the heading
     line = str("DIVISORS:").ljust(headingWidth)
-    for j in range(len(systems)):
+    for j in range(len(systems.systems)):
         line += ascii_uppercase[j].rjust(columnWidth)
-    for system in versusSystems:
-        line += (ascii_uppercase[system[0]] + ascii_uppercase[system[1]]).rjust(columnWidth)
-    for system in confirmationSystems:
-        line += (ascii_uppercase[system[0]] + ascii_uppercase[system[1]]).rjust(columnWidth)
     print(line)
 
-
-    for i in range(max([len(system) for system in systems])):
+    #print the divisors
+    for i in range(max([len(system.divisors) for system in systems.systems])):
         line = str("").ljust(headingWidth)
-        for system in systems:
-            divisor = system[i] if i < len(system) else ''
+
+        for system in systems.systems:
+            divisor = system.divisors[i] if i < len(system.divisors) else ''
             line += str(divisor).rjust(columnWidth)
         print(line)
 
@@ -72,38 +73,15 @@ def enterSystemsMenu(systems, versusSystems, confirmationSystems):
             printSystems(systems, versusSystems, confirmationSystems)
         keyContinue()
 
-#asks the user how many number systems they want
-def getSystems():
-    systems = []
-    cols = input("How many systems/columns do you want? \n")
-    try:
-        cols = int(cols)
-    except:
-        print ("BAD INPUT!")
-        return getSystems()
+#asks the user to enter the systems to be calculated
+def getSystems(dbConnection):
+    systems = Systems(dbConnection)
 
-    print ("\n")
-    for i in range(int(cols)):
-        systems.append(getSysNumbers(i))
+    while True:
+        system = System()
+        if system.getDivisors():
+            systems.addSystem(system)
+        else:
+            break
 
     return systems
-
-#asks the user what numbers they want in a particular system
-#sys is the column index into the system columns (0=system A, 1=system B, ...)
-def getSysNumbers(sys): 
-    system = []
-    quit = False
-    while quit is False:
-        val = input("Enter numbers for system "+str(chr(sys+65)).lower()+" (q to finish) ")
-
-        vals = re.findall(r"[\w']+", val)
-        for val in vals:
-            try:
-                system.append(int(val.replace("q","")))
-            except:
-                pass
-            if "q" in val:
-                quit = True
-
-    print ("\n" )
-    return system
