@@ -1,21 +1,10 @@
 from constants import MaTypes
-from database import *
+from database import loadMaColumn, saveColumn
+
 maType = MaTypes.RalphStyle # the default desired moving average type
 
-
-# returns a collection of columns for each system
-# systems: a 2d array of systems [[2,4,6,8],[10,12,14],[16,18,20],[22,24,26]]
-# data: The data to calculate the sys cols on
-# dbConnection: the connection to the database, given as an argument to allow re-use and avoid disconnecting and reconnecting repeatedly.
-def calcSysCols(systems, data, dbConnection):
-    cols = []
-    for i in range(len(systems)):
-        cols.append(calcSysCol(systems[i], data, dbConnection))
-    return cols
-
-
 # given a list of numbers to comprise a system, calculates that system's column
-def calcSysCol(divisors, data, dbConnection):
+def calculateNormalMaCumulativeTotal(divisors, data, dbConnection=None):
     global maType
     import time
 
@@ -26,13 +15,13 @@ def calcSysCol(divisors, data, dbConnection):
         if maType == MaTypes.RalphStyle:
             numcol = []
             if(dbConnection is not None):
-                numcol = database.loadMaColumn(dbConnection, "_" + str(divisor)) #load the calculated column
+                numcol = loadMaColumn(dbConnection, "_" + str(divisor)) #load the calculated column
             if(len(numcol)==len(data)):
                 adtl="Via database load. "
             if(len(numcol) < len(data)):
                 numcol = calculateColumnRalphsMA(divisor, data, numcol) #update the calculation
             if(dbConnection is not None):
-                database.saveColumn(dbConnection, numcol, "_"+str(divisor)) #save the updated calculation into the database
+                saveColumn(dbConnection, numcol, "_"+str(divisor)) #save the updated calculation into the database
         elif maType == MaTypes.NormalStyle:
             numcol = calculateColumnNormalMA(divisor, data)
         endMillis = int(round(time.time() * 1000))

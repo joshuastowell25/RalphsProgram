@@ -4,4 +4,4 @@
 __all__ = ["dataIO"] # controls what 'from dataIO import *' does. This is the list of files to include in __all__.
 
 #control what 'import dataIO' actually does.
-from .dataIO import getDataFromFile, getDataFromDatabase, saveDataToFile, dataMenu #now you can call data.getData
+from .dataIO import *
