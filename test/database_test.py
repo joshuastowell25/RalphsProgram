@@ -1,30 +1,34 @@
 import datetime
 import unittest
-
+import database
 from dataIO.dataIO import take_user_data_input, take_user_file_input
-from database.database import getLatest, getDbConnection, getCompanyList, writeDatumToDatabase
+
 
 
 class DbTestClass(unittest.TestCase):
 
     def test_getLatest(self):
-        latest = getLatest(getDbConnection("sp"))
+        latest = database.getLatest(database.getDbConnection("sp"))
         print(latest)
         self.assertTrue(True)
         pass
 
     def test_getCompanyList(self):
-        companyList = getCompanyList(getDbConnection("sp"))
+        companyList = database.getCompanyList(database.getDbConnection("sp"))
         print(companyList)
         pass
 
     def test_take_user_data_input(self):
-        take_user_data_input(getDbConnection("sp"))
+        take_user_data_input(database.getDbConnection("sp"))
 
     def test_take_user_file_input(self):
-        take_user_file_input(getDbConnection("sp"), "./sp500.csv")
+        take_user_file_input(database.getDbConnection("sp"), "./sp500.csv")
 
     def test_writeDatumToDatabase(self):
-        conn = getDbConnection("sp")
-        writeDatumToDatabase(conn, datetime.datetime.now(), 9999.99)
+        conn = database.getDbConnection("sp")
+        database.writeDatumToDatabase(conn, datetime.datetime.now(), 9999.99)
         conn.commit()
+
+    def test_loadDatapointsFromDatabase(self):
+        datapoints = database.loadDatapointsFromDatabase(database.getDbConnection("sp"))
+        assert(len(datapoints)>20)

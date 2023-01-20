@@ -5,4 +5,4 @@ __all__ = ["calculation"] # controls what 'from data import *' does
 
 #control what 'import calculation' actually does.
 #.calculation is the calculation.py file. This is also known as a module. project > package > module
-from .calculation import calcSysCols, calculateColumnRalphsMA
+from .calculation import *

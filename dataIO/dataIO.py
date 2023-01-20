@@ -1,7 +1,9 @@
 import os
 from datetime import datetime
 import database
+import domain
 from constants import DATA_PATH
+
 
 #Remember each database connection currently represents a company
 def getDbConnection():
@@ -13,10 +15,15 @@ def getDbConnection():
             print("No file exists named " + companyName)
     return dbConnection
 
-def getDataFromDatabase(dbConnection = None):
-    dbConnection = getDbConnection()
+def getDatapointsFromDatabase(dbConnection = None):
+    datapoints = []
+    if dbConnection is None:
+        dbConnection = getDbConnection()
     data, dates = database.loadDataFromDatabase(dbConnection)
-    return {'dates': dates, 'data': data, 'dbConnection': dbConnection}
+    for i in range(len(data)):
+        datapoints.append(domain.Datapoint(dates[i], data[i]))
+    return datapoints
+
 
 
 #gets an array of data from a particular flat file instead of the database
@@ -38,17 +45,22 @@ def getDataFromFile(filename = None): #filename defaults to None
     datetimes = []
     for line in lines_list:
         tokens = line.split(",")
-        if(len(tokens) > 1):
+        if(len(tokens) > 5):
             data.append(float(tokens[5]))
             dateTimeStr = tokens[0]+" "+tokens[1] #e.g. '06/29/2019 08:15'
-            dateTimeObj = datetime.datetime.strptime(dateTimeStr, '%m/%d/%Y %H:%M:%S')
+            dateTimeObj = datetime.strptime(dateTimeStr, '%m/%d/%Y %H:%M:%S')
+            datetimes.append(dateTimeObj)
+        elif len(tokens)>1:
+            data.append(float(tokens[0]))
+            dateTimeStr = tokens[1]+ " 16:00:00"
+            dateTimeObj = datetime.strptime(dateTimeStr, '%m/%d/%Y %H:%M:%S')
             datetimes.append(dateTimeObj)
         else:
             data.append(float(tokens[0]))
     print ("\n")
     if(len(datetimes) == 0):
         datetimes = None
-    return data, filename, datetimes
+    return {"data": data, "filename": filename, "dates": datetimes}
 
 #saves data to a given filename
 def saveDataToFile(data, filename, dates=None):

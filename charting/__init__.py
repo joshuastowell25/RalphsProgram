@@ -4,4 +4,4 @@
 __all__ = ["charting"] # controls what 'from charting import *' does
 
 #control what 'import charting' actually does. 
-from .charting import chartData #now you can call charting.chartSystems
+from .charting import *

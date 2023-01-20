@@ -1,25 +1,12 @@
 #!/usr/bin/env python
-import datetime
 import os, sys, traceback
-import time
-import pandas
-import systems as sys
-import dataIO as dataIO
-import calculation as calculation
-import charting 
-import shutil               #shell utils to get the terminal height
-import settings             #the GOOD way to import from a file
-#from settings import *     #The BAD way to import from a file
+import charting
+import shutil
+import settings
 from constants import MaTypes
-from systems import printSystems
-# from settings import *     #The BAD way to import from a file
-from systems import printSystems
-from string import ascii_uppercase
-
-class positions:
-    LONG = 1
-    SHORT = -1
-    FLAT = 0
+from dataIO.dataIO import getDbConnection
+from domain import Systems
+from systems import printSystems, getSystems, enterSystemsMenu
 
 
 # gets the number of lines in the terminal
@@ -48,297 +35,99 @@ def getMaType(ans=None):  # ans defaults to None
 
     return mtype
 
-
-# gets the indexes for which columns to run a versus system on. E.g. AB would return [0,1], BC returns [1,2], etc.
-def getIndexes(inputPrompt):
-    in1 = input(inputPrompt)
-    in1 = in1.upper()
-    parts = in1.split(" ")
-    if len(parts) == 1:
-        teamA = ord(in1[0]) - 65
-        teamB = ord(in1[1]) - 65
-    elif len(parts) == 2:
-        teamA = ord(parts[0]) - 65  # 65 is ascii A
-        teamB = ord(parts[1]) - 65  # 65 is ascii A
-    elif len(parts) != 2:
-        print(f"BAD INPUT! Try again!")
-        return getIndexes(inputPrompt)
-
-    return [teamA, teamB]
-
-
-# prints all of the data and columns, starting at a particular increment if given
-def printCols(data, dates, cols, startInc=None, offset=0):
-    colString = ""
+# prints all of the data and cumulative total columns, starting at a particular increment if given
+def printCumulativeTotals(systems: Systems, startInc=None, offset=0):
+    datapoints = systems.datapoints
+    cols = [system.cumulativeTotal for system in systems.systems]
+    lineString = ""
     if startInc is None:
-        startInc = len(data) - screenHeight()
+        startInc = len(datapoints) - screenHeight()
 
     for i in range(startInc - 1, startInc + screenHeight()):
         if i < len(cols[0]):
             for col in cols:
-                colString += "{:>10}".format(col[i])
+                lineString += "{:>10}".format(int(col[i] * 100))
 
             increment = '{:>8}, '.format(i + 1 + offset)  # > means align text to the right
-            date = str(dates[i]) + ", "
-            dataVal = '{:>10}, '.format(data[i])
+            date = str(datapoints[i].datetime) + ", "
+            dataVal = '{:>10}, '.format(datapoints[i].price)
 
-            print(increment + date + dataVal + colString)
-            colString = ""
+            print(increment + date + dataVal + lineString)
+            lineString = ""
 
-
-# given the system columns and teamA,teamB of vsIndexes, calculates a vs column
-def calcVsCol(syscols, vsIndexes):
-    col = [0] * len(syscols[0])
-    index1 = vsIndexes[0]
-    index2 = vsIndexes[1]
-    for i in range(len(syscols[0])):
-        col[i] += syscols[index1][i]
-        col[i] -= syscols[index2][i]
-    return col
-
-
-def calcConfCol(syscols, confIndexes):
-    col = [0] * len(syscols[0])
-    for i in range(len(syscols[0])):
-        if syscols[confIndexes[0]][i] < 0 and syscols[confIndexes[1]][i] < 0:
-            col[i] = -1
-        elif syscols[confIndexes[0]][i] > 0 and syscols[confIndexes[1]][i] > 0:
-            col[i] = 1
-        else:
-            col[i] = 0
-    return col
-
-
-def printStats(stats, endIndex, startIndex=0):
+def printStats(systems: Systems, startIndex=0):
+    endIndex = len(systems.datapoints) -1
+    stats = [system.stats for system in systems.systems]
     headingWidth = 43
-    width = screenWidth()
     splitter = "*" * screenWidth()
     print(splitter + "\n")
 
     # print the grant total for each stat in stats
     banner = str('GRAND TOTAL:').ljust(headingWidth)
     for stat in stats:
-        value = stat['runningGt'][endIndex] - stat['runningGt'][startIndex]
+        value = stat.runningGt[endIndex] - stat.runningGt[startIndex]
         banner += str(format(value, '.2f')).rjust(10)  # data is adjusted prior to this to have pennies to the left of the decimal, move them back right by dividing by 100
     print(banner)
 
     banner = str('TRADE COUNT:').ljust(headingWidth)
     for stat in stats:
-        value = stat['runningTradeCount'][endIndex] - stat['runningTradeCount'][startIndex]
+        value = stat.runningTradeCount[endIndex] - stat.runningTradeCount[startIndex]
         banner += str(value).rjust(10)
     print(banner)
 
     banner = str('WIN COUNT:').ljust(headingWidth)
     for stat in stats:
-        value = stat['runningWinCount'][endIndex] - stat['runningWinCount'][startIndex]
+        value = stat.runningWinCount[endIndex] - stat.runningWinCount[startIndex]
         banner += str(value).rjust(10)
     print(banner)
 
     banner = str('LOSS COUNT:').ljust(headingWidth)
     for stat in stats:
-        value = stat['runningLossCount'][endIndex] - stat['runningLossCount'][startIndex]
+        value = stat.runningLossCount[endIndex] - stat.runningLossCount[startIndex]
         banner += str(value).rjust(10)
     print(banner)
 
     banner = str('AVG WIN:').ljust(headingWidth)
     for stat in stats:
-        total = stat['runningWinTotal'][endIndex] - stat['runningWinTotal'][startIndex]
-        count = stat['runningWinCount'][endIndex] - stat['runningWinCount'][startIndex]
+        total = stat.runningWinTotal[endIndex] - stat.runningWinTotal[startIndex]
+        count = stat.runningWinCount[endIndex] - stat.runningWinCount[startIndex]
         value = total/count if count != 0 else 0
         banner += str(format(value, '.2f')).rjust(10)
     print(banner)
 
     banner = str('AVG LOSS:').ljust(headingWidth)
     for stat in stats:
-        total = stat['runningLossTotal'][endIndex] - stat['runningLossTotal'][startIndex]
-        count = stat['runningLossCount'][endIndex] - stat['runningLossCount'][startIndex]
+        total = stat.runningLossTotal[endIndex] - stat.runningLossTotal[startIndex]
+        count = stat.runningLossCount[endIndex] - stat.runningLossCount[startIndex]
         value = total/count if count != 0 else 0
         banner += str(format(value, '.2f')).rjust(10)
     print(banner)
 
     banner = str('MAX WIN:').ljust(headingWidth)
     for stat in stats:
-        value = stat['runningMaxWin'][endIndex] - stat['runningMaxWin'][startIndex]
+        value = stat.runningMaxWin[endIndex] - stat.runningMaxWin[startIndex]
         banner += str(format(value, '.2f')).rjust(10)
     print(banner)
 
     banner = str('MAX LOSS:').ljust(headingWidth)
     for stat in stats:
-        value = stat['runningMaxLoss'][endIndex] - stat['runningMaxLoss'][startIndex]
+        value = stat.runningMaxLoss[endIndex] - stat.runningMaxLoss[startIndex]
         banner += str(format(value, '.2f')).rjust(10)
     print(banner)
 
     banner = str('W/L RATIO:').ljust(headingWidth)
     for stat in stats:
-        winCount = stat['runningWinCount'][endIndex] - stat['runningWinCount'][startIndex]
-        lossCount = stat['runningLossCount'][endIndex] - stat['runningLossCount'][startIndex]
-        if (lossCount != 0):
-            banner += str(format(float(winCount) / float(lossCount), '.2f')).rjust(10)
-        else:
-            banner += str('N/A').rjust(10)
+        winCount = stat.runningWinCount[endIndex] - stat.runningWinCount[startIndex]
+        lossCount = stat.runningLossCount[endIndex] - stat.runningLossCount[startIndex]
+        banner += str('N/A' if lossCount == 0 else format(float(winCount) / float(lossCount), '.2f')).rjust(10)
     print(banner)
 
-    banner = str('L/W RATIO:').ljust(headingWidth)
+    banner = 'L/W RATIO:'.ljust(headingWidth)
     for stat in stats:
-        winCount = stat['runningWinCount'][endIndex] - stat['runningWinCount'][startIndex]
-        lossCount = stat['runningLossCount'][endIndex] - stat['runningLossCount'][startIndex]
-        if (winCount != 0):
-            banner += str(format(float(lossCount) / float(winCount), '.2f')).rjust(10)
-        else:
-            banner += str('N/A').rjust(10)
+        winCount = stat.runningWinCount[endIndex] - stat.runningWinCount[startIndex]
+        lossCount = stat.runningLossCount[endIndex] - stat.runningLossCount[startIndex]
+        banner += str('N/A' if winCount == 0 else format(float(lossCount) / float(winCount), '.2f')).rjust(10)
     print(banner)
-
-
-# calculates and returns a list of stats for every column given in syscols
-def calcStats(data, syscols):
-    start = time.time()
-    result = []
-    for syscol in syscols:
-        result.append(getColStats(data, syscol, data, data))  # for now just use market data as bid and ask price
-    stop = time.time()
-    diff = stop - start
-    print("Calculated stats in " + "{:.2f}".format(diff) + " seconds")
-    return result
-
-
-# calculates and returns stats for a particular column
-def getColStats(data, syscol, bid, ask):
-    gt = 0
-    runningGt = []
-    runningWinCount = []
-    runningLossCount = []
-    runningTradeCount = []
-    runningTieCount = []
-    runningMaxWin = []
-    runningMaxLoss = []
-    runningWinTotal = []
-    runningLossTotal = []
-    tradeCount = 0
-    winCount = 0
-    lossCount = 0
-    tieCount = 0
-    position = positions.FLAT
-    positionPrice = 0
-    price = 0
-    winloss = 0
-    maxWin = 0
-    maxLoss = 0
-    for i in range(len(syscol)):
-        price = data[i]
-        bidPrice = bid[i]
-        askPrice = ask[i]
-        if (syscol[i] > 0):  # the system is long
-            if (position == positions.FLAT):
-                position = positions.LONG
-                positionPrice = askPrice  # you're going long so you're buying from the ASK
-            elif (position == positions.SHORT):
-                # you've exited a short position and you're going long. Short selling aka 'Shorting' is selling a stock you down own by borrowing it from your broker.
-                # So to exit a short position, in which you have sold a stock, you must now buy one back (at the asking price) to exit the position
-                winloss = positionPrice - askPrice
-                if winloss == 0:
-                    tieCount += 1
-                elif winloss < 0:
-                    lossCount += 1
-                elif winloss > 0:
-                    winCount += 1
-                gt += winloss
-                tradeCount += 1
-                position = positions.LONG
-                positionPrice = askPrice  # you're going long so you're buying from the ASK
-        elif (syscol[i] < 0):  # The system is short
-            if (position == positions.FLAT):
-                position = positions.SHORT
-                positionPrice = bidPrice  # Short selling aka 'Shorting' is selling a stock you down own by borrowing it from your broker. You can only sell NOW at the highest bid price.
-            elif (position == positions.LONG):
-                # you've exited a long position to go short
-                winloss = bidPrice - positionPrice  # sell what you owned at the bidPrice
-                if winloss == 0:
-                    tieCount += 1
-                elif winloss < 0:
-                    lossCount += 1
-                elif winloss > 0:
-                    winCount += 1
-                gt += winloss
-                tradeCount += 1
-                position = positions.SHORT
-                positionPrice = bidPrice  # Short selling aka 'Shorting' is selling a stock you down own by borrowing it from your broker. You can only sell NOW at the highest bid price.
-        elif (syscol[i] == 0):  # The system is FLAT (no position)
-            if (position == positions.LONG):
-                # you've exited a long position to go flat
-                winloss = bidPrice - positionPrice  # sell what you owned at the bidPrice
-                if winloss == 0:
-                    tieCount += 1
-                elif winloss < 0:
-                    lossCount += 1
-                elif winloss > 0:
-                    winCount += 1
-                gt += winloss
-                tradeCount += 1
-            elif (position == positions.SHORT):
-                # you've exited a short position and you're going long. Short selling aka 'Shorting' is selling a stock you down own by borrowing it from your broker.
-                # So to exit a short position, in which you have sold a stock, you must now buy one back (at the asking price) to exit the position
-                winloss = positionPrice - askPrice
-                if winloss == 0:
-                    tieCount += 1
-                elif winloss < 0:
-                    lossCount += 1
-                elif winloss > 0:
-                    winCount += 1
-                gt += winloss
-                tradeCount += 1
-            position = positions.FLAT
-            positionPrice = price  # it's irrelevant what you make the positionPrice in a flat position. We'll just set it to the market price here.
-        if (winloss > maxWin):
-            maxWin = winloss
-        elif (winloss < maxLoss):
-            maxLoss = winloss
-
-        runningGt.append(gt)
-        runningTradeCount.append(tradeCount)
-        runningWinCount.append(winCount)
-        runningLossCount.append(lossCount)
-        runningTieCount.append(tieCount)
-        runningMaxWin.append(maxWin)
-        runningMaxLoss.append(maxLoss)
-
-        if (i > 0 and winloss < 0):
-            runningWinTotal.append(runningWinTotal[i - 1])
-            runningLossTotal.append(winloss + runningLossTotal[i - 1])
-        elif (i > 0 and winloss > 0):
-            runningWinTotal.append(winloss + runningWinTotal[i - 1])
-            runningLossTotal.append(runningLossTotal[i - 1])
-        elif (i == 0 and winloss < 0):
-            runningWinTotal.append(0)
-            runningLossTotal.append(winloss)
-        elif (i == 0 and winloss > 0):
-            runningWinTotal.append(winloss)
-            runningLossTotal.append(0)
-        elif (i > 0 and winloss == 0):
-            runningWinTotal.append(runningWinTotal[i - 1])
-            runningLossTotal.append(runningLossTotal[i - 1])
-        elif (i == 0 and winloss == 0):
-            runningLossTotal.append(0)
-            runningWinTotal.append(0)
-        winloss = 0
-
-    result = {"gt": gt,
-     "tradeCount": tradeCount,
-     "winCount": winCount,
-     "lossCount": lossCount,
-     "maxWin": maxWin,
-     "maxLoss": maxLoss,
-     "runningGt": runningGt,
-     "runningWinCount": runningWinCount,
-     "runningLossCount": runningLossCount,
-     "runningTieCount": runningTieCount,
-     "runningTradeCount": runningTradeCount,
-     "runningMaxWin": runningMaxWin,
-     "runningMaxLoss": runningMaxLoss,
-     "runningWinTotal": runningWinTotal,
-     "runningLossTotal": runningLossTotal}
-
-    return result  # internal representation of pennies is left of the decimal point
-
 
 def clearTerminal():
     import os
@@ -353,67 +142,14 @@ def isValidDecimal(input):
     else:
         return True
 
-
 def main():
     global maType
     maType = getMaType(settings.defaultMaType)  # gets and sets the global moving average type
-    result = dataIO.getDataFromDatabase()
-    dbConnection = result['dbConnection']
-    priceData = result['data']
-    dates = result['dates']
-
-    systems = sys.getSystems()
-    syscols = calculation.calcSysCols(systems, priceData, dbConnection)
-
-    count = 0
-    doVersus = settings.doVersusDefault
-    versusSystems = []
-    while doVersus == 'y' or doVersus != 'n':
-        if doVersus != 'y' and doVersus != 'n':
-            print("BAD INPUT!")
-        a_another = "another" if count > 0 else "a"
-        doVersus = input("Do you want to create " + a_another + " versus column? (y or n) \n")
-        if doVersus == 'y':
-            while True:
-                try:
-                    indexes = getIndexes("What columns do you want to play against each other? Example: xy \n")  # if they choose ab, returns list of those indices: [0,1]
-                    versusSystems.append(indexes)
-                    vscol = calcVsCol(syscols, indexes)
-                    break
-                except Exception as e:
-                    print(f"BAD INPUT! Try again!")
-            print ("\'"+ascii_uppercase[indexes[0]]+" confirming "+ascii_uppercase[indexes[1]]+"\' was placed in column "+ascii_uppercase[len(syscols)]+"\n\n")
-            syscols.append(vscol)
-            count += 1
-
-    count = 0
-    doConfirmation = settings.doConfirmationDefault
-    confirmationSystems = []
-    while doConfirmation == 'y' or doConfirmation != 'n':
-        if doConfirmation != 'y' and doConfirmation != 'n':
-            print("BAD INPUT!")
-        a_another = "another" if count > 0 else "a"
-        doConfirmation = input("\nDo you want to create " + a_another + " confirmation column? (y or n) \n")
-        if doConfirmation == 'y':
-            while True:
-                try:
-                    indexes = getIndexes("What columns do you want to confirm each other? Example: xy \n")  # if they choose ab, returns list of those indices: [0,1]
-                    confirmationSystems.append(indexes)
-                    confcol = calcConfCol(syscols, indexes)
-                    break
-                except Exception as e:
-                    print(f"BAD INPUT! Try again!")
-            print ("\'"+ascii_uppercase[indexes[0]]+" confirming "+ascii_uppercase[indexes[1]]+"\' was placed in column "+ascii_uppercase[len(syscols)]+"\n\n")
-            syscols.append(confcol)   
-            count += 1
-
-    if (settings.immediateResults == False):
-        input("\nPress Enter to view columns...\n")
-    currentLine = len(priceData) - screenHeight()
-    printCols(priceData, dates, syscols, currentLine)
-    stats = calcStats(priceData, syscols)
-    printSystems(systems, versusSystems, confirmationSystems)
-    printStats(stats, len(priceData) - 1)
+    systems = getSystems(getDbConnection())
+    currentLine = len(systems.datapoints) - screenHeight()
+    printCumulativeTotals(systems, currentLine)
+    printSystems(systems)
+    printStats(systems)
 
     command = 0
     while command != 'q':
@@ -423,118 +159,42 @@ def main():
             return
         elif command == 'c':
             clearTerminal()
-            dbConnection.close()
-            result = dataIO.getDataFromDatabase()
-            dbConnection = result['dbConnection']
-            priceData = result['data']
-            dates = result['dates']
-
-            clearTerminal()
-            syscols = calculation.calcSysCols(systems, priceData, dbConnection)
-            for indexes in versusSystems:
-                vscol = calcVsCol(syscols, indexes)
-                syscols.append(vscol)
-            for indexes in confirmationSystems:
-                confcol = calcConfCol(syscols, indexes)
-                syscols.append(confcol)
-            printCols(priceData, dates, syscols, currentLine)
-            stats = calcStats(priceData, syscols)
-            printSystems(systems, versusSystems, confirmationSystems)
-            printStats(stats, len(priceData) - 1)
+            systems.setDbConnection(getDbConnection())
+            currentLine = len(systems.datapoints) - screenHeight()
+            printCumulativeTotals(systems, currentLine)
+            printSystems(systems)
+            printStats(systems)
         elif command == 'chart':
-            whichSys = 1
-            if (len(stats) > 1):
-                whichSys = int(input("Which system do you want to chart? (e.g. 1, 2, 5, etc) "))
-            runningGt = stats[whichSys - 1]['runningGt']
-            charting.chartData(priceData, runningGt, dates)
+            whichSys = int(input("Which system do you want to chart? (e.g. 0, 1, 2, etc) "))
+            charting.chartSystem(systems.systems[whichSys])
         elif command == '6':
             whichInc = input("What increment do you want to go to? (q to exit, e for end increment) ")
             if (whichInc == "e"):
-                currentLine = len(priceData) - screenHeight()
-                whichInc = len(priceData)
+                currentLine = len(systems.datapoints) - screenHeight()
+                whichInc = len(systems.datapoints)
             else:
                 currentLine = int(whichInc) - screenHeight()
 
-            printCols(priceData, dates, syscols, currentLine)
-            printSystems(systems, versusSystems, confirmationSystems)
-            printStats(stats, int(whichInc) - 1)
+            printCumulativeTotals(systems, currentLine)
+            printSystems(systems)
+            printStats(systems, int(whichInc) - 1)
         elif command == 'r':  # Restart
             clearTerminal()
             main()
         elif command == 's':
-            sys.enterSystemsMenu(systems, versusSystems, confirmationSystems)
-            # now they've returned
-            printCols(priceData, dates, syscols, currentLine)
-            printSystems(systems, versusSystems, confirmationSystems)
-            printStats(stats, len(priceData) - 1)
-        elif command == 't':
-            earliestDate = dates[0]
-            latestDate = dates[len(dates) - 1]
-            print("You can choose time windows between " + \
-                  str(earliestDate.strftime('%m/%d/%Y %H:%M:%S')) + " and " + \
-                  str(latestDate.strftime('%m/%d/%Y %H:%M:%S')))
-            startDate = None
-            endDate = None
+            enterSystemsMenu(systems)
+            printCumulativeTotals(systems, currentLine)
+            printSystems(systems)
+            printStats(systems, len(systems.datapoints) - 1)
 
-            while (startDate is None):
-                try:
-                    timeA = input("Enter the start date for your time window in format MM/DD/YYYY\n")
-                    if (len(timeA) < 11):
-                        timeA = timeA + " 00:00:00"
-                    startDate = datetime.datetime.strptime(timeA, '%m/%d/%Y %H:%M:%S')
-                    # make sure startDate is on or after the 0th date
-                    if (not (startDate >= earliestDate)):
-                        print("BAD DATE: You can only choose time windows between " + str(earliestDate) + " and " + str(
-                            latestDate) + "\n")
-                        startDate = None
-                except Exception as e:
-                    print(f"BAD DATE: {e}")
-                    startDate = None
-
-            while (endDate is None):
-                try:
-                    timeB = input("Enter the end date for your time window in format MM/DD/YYYY\n")
-                    if (len(timeB) < 11):
-                        timeB = timeB + " 00:00:00"
-                    endDate = datetime.datetime.strptime(timeB, '%m/%d/%Y %H:%M:%S')
-                    # make sure endDate is on or before the last date
-                    if (not (endDate <= latestDate)):
-                        print("BAD DATE: You can only choose time windows between " + str(earliestDate) + " and " + str(
-                            latestDate) + "\n")
-                        endDate = None
-                    if (not (endDate > startDate)):
-                        print("BAD DATE: The end date must be AFTER the start date.\n")
-                        endDate = None
-                except Exception as e:
-                    print(f"BAD DATE: {e}")
-                    endDate = None
-
-            dates_df = pandas.to_datetime(dates).to_frame()
-            dates_df = dates_df.truncate(before=startDate, after=endDate)
-            firstDate = dates_df[0].iloc[0]
-            lastDate = dates_df[0].iloc[len(dates_df.index) - 1]
-            startIndex = dates.index(firstDate)
-            endIndex = dates.index(lastDate)
-            syscolsTrimmed = [subcol[startIndex:endIndex + 1] for subcol in syscols]
-            printCols(priceData[startIndex:endIndex + 1], dates[startIndex:endIndex + 1], syscolsTrimmed, currentLine,
-                      startIndex)
-            stats = calcStats(priceData, syscols)
-            printSystems(systems, versusSystems, confirmationSystems)
-            printStats(stats, endIndex+1, startIndex)
-        elif command == 'g': #Grand Totals
-            printCols(priceData, dates, syscols, currentLine)
-            stats = calcStats(priceData, syscols)
-            printSystems(systems, versusSystems, confirmationSystems)
-            printStats(stats, len(priceData) - 1)
-
-
-try:
-    clearTerminal()
-    main()
-except Exception as e:
-    print(f"Error: {e}")
-    exc_type, exc_obj, exc_tb = sys.exc_info()
-    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-    print(exc_type, fname, exc_tb.tb_lineno)
-    print(traceback.format_exc())
-    input("There was an Error. Press Enter to Exit...")
+if __name__ == "__main__":
+    try:
+        clearTerminal()
+        main()
+    except Exception as e:
+        print(f"Error: {e}")
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        print(exc_type, fname, exc_tb.tb_lineno)
+        print(traceback.format_exc())
+        input("There was an Error. Press Enter to Exit...")
