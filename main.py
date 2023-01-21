@@ -2,8 +2,6 @@
 import os, sys, traceback
 import charting
 import shutil
-import settings
-from constants import MaTypes
 from dataIO.dataIO import getDbConnection
 from domain import Systems, Stat
 from systems import getSystems, enterSystemsMenu
@@ -41,7 +39,7 @@ def printCumulativeTotals(systems: Systems, startInc=None, offset=0):
 def printStats(systems: Systems):
     Stat.printStatsHeading()
     for system in systems.systems:
-        system.stats.print(system.divisors, system.divisorBalance)
+        system.stats.print(system.getDivisorString(), system.divisorBalance)
 
 
 def clearTerminal():

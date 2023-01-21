@@ -47,7 +47,7 @@ class Stat:
         'BALANCE'.ljust(headingWidth) +
         'DIVISORS'.ljust(headingWidth)
               )
-    def print(self, divisors, divsorBalance):
+    def print(self, divisors, divsorBalance=1):
         headingWidth = 12
         print(
             str(format(self.runningGt[-1], '.2f')).ljust(headingWidth) +
@@ -85,6 +85,14 @@ class System:
         self.divisors = divisors
         self.systemType = systemType
         self.stats = Stat()
+
+    def getDivisorString(self):
+        if self.systemType == systemTypes.NORMAL:
+            return ' '.join([str(divisor) for divisor in self.divisors])
+        elif self.systemType == systemTypes.VERSUS:
+            return ' '.join([str(divisor) for divisor in self.divisors[0]]) + " vs " + ' '.join([str(divisor) for divisor in self.divisors[1]])
+        elif self.systemType == systemTypes.CONFIRMATION:
+            return ' '.join([str(divisor) for divisor in self.divisors[0]]) + " conf " + ' '.join([str(divisor) for divisor in self.divisors[1]])
 
     def calculate(self):
         data = [point.price for point in self.datapoints]
