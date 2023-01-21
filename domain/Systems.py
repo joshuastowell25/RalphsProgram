@@ -44,9 +44,10 @@ class Stat:
         'MAX LOSS'.ljust(headingWidth) +
         'W/L RATIO'.ljust(headingWidth) +
         'L/W RATIO'.ljust(headingWidth) +
+        'BALANCE'.ljust(headingWidth) +
         'DIVISORS'.ljust(headingWidth)
               )
-    def print(self, divisors):
+    def print(self, divisors, divsorBalance):
         headingWidth = 12
         print(
             str(format(self.runningGt[-1], '.2f')).ljust(headingWidth) +
@@ -59,6 +60,7 @@ class Stat:
             str(format(self.runningMaxLoss[-1], '.2f')).ljust(headingWidth) +
             str(format(float(self.runningWinCount[-1])/float(self.runningLossCount[-1]), '.2f') if self.runningLossCount[-1] > 0 else "N/A").ljust(headingWidth) +
             str(format(float(self.runningLossCount[-1])/float(self.runningWinCount[-1]), '.2f') if self.runningWinCount[-1] > 0 else "N/A").ljust(headingWidth) +
+            str(format(divsorBalance, '.2f')).ljust(headingWidth) +
             str(divisors)
         )
 
@@ -76,6 +78,7 @@ class System:
     systemType = None
     cumulativeTotal = []
     stats: Stat = None
+    divisorBalance: float = 1
 
 
     def __init__(self, divisors=None, systemType=None):
@@ -256,12 +259,14 @@ class System:
             aTokens = [int(item) for item in sides[0].split(" ")]
             bTokens = [int(item) for item in sides[1].split(" ")]
             self.divisors = [aTokens, bTokens]
+            self.divisorBalance = sum([token * token for token in aTokens]) / sum([token * token for token in bTokens])
         elif 'conf' in userinput:
             self.systemType = systemTypes.CONFIRMATION
             sides = userinput.split(" conf ")
             aTokens = [int(item) for item in sides[0].split(" ")]
             bTokens = [int(item) for item in sides[1].split(" ")]
             self.divisors = [aTokens, bTokens]
+            self.divisorBalance = sum([token * token for token in aTokens]) / sum([token * token for token in bTokens])
         else:
             self.systemType = systemTypes.NORMAL
             self.divisors = [int(item) for item in userinput.split(" ")]

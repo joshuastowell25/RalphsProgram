@@ -38,10 +38,10 @@ def printCumulativeTotals(systems: Systems, startInc=None, offset=0):
             print(increment + date + dataVal + lineString)
             lineString = ""
 
-def printStats(systems: Systems, startIndex=0):
+def printStats(systems: Systems):
     Stat.printStatsHeading()
     for system in systems.systems:
-        system.stats.print(system.divisors)
+        system.stats.print(system.divisors, system.divisorBalance)
 
 
 def clearTerminal():
@@ -87,7 +87,7 @@ def main():
                 currentLine = int(whichInc) - screenHeight()
 
             printCumulativeTotals(systems, currentLine)
-            printStats(systems, int(whichInc) - 1)
+            printStats(systems)
         elif command == 'r':  # Restart
             systems.clearSystems()
             clearTerminal()
@@ -95,7 +95,7 @@ def main():
         elif command == 's':
             enterSystemsMenu(systems)
             printCumulativeTotals(systems, currentLine)
-            printStats(systems, len(systems.datapoints) - 1)
+            printStats(systems)
 
 if __name__ == "__main__":
     try:
