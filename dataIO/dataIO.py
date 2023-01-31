@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 import database
 import domain
+import terminal
 from constants import DATA_PATH
 
 
@@ -13,6 +14,7 @@ def getDbConnection():
         dbConnection = database.getDbConnection(companyName)
         if dbConnection is None:
             print("No file exists named " + companyName)
+    terminal.clearTerminal()
     return dbConnection
 
 def getDatapointsFromDatabase(dbConnection = None):

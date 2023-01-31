@@ -2,6 +2,7 @@
 import os, sys, traceback
 import charting
 import shutil
+import terminal
 from dataIO.dataIO import getDbConnection
 from domain import Systems, Stat
 from systems import getSystems, enterSystemsMenu
@@ -41,12 +42,6 @@ def printStats(systems: Systems):
     for system in systems.systems:
         system.stats.print(system.getDivisorString(), system.divisorBalance)
 
-
-def clearTerminal():
-    import os
-    os.system('cls' if os.name == 'nt' else 'clear')
-
-
 def isValidDecimal(input):
     try:
         float(input)
@@ -68,14 +63,14 @@ def main():
         if command == 'q':
             return
         elif command == 'c':
-            clearTerminal()
+            terminal.clearTerminal()
             systems.setDbConnection(getDbConnection())
             currentLine = len(systems.datapoints) - screenHeight()
             printCumulativeTotals(systems, currentLine)
             printStats(systems)
         elif command == 'chart':
-            whichSys = int(input("Which system do you want to chart? (e.g. 0, 1, 2, etc) "))
-            charting.chartSystem(systems.systems[whichSys])
+            whichSys = int(input("Which system do you want to chart? (e.g. 1, 2, 3, etc) "))
+            charting.chartSystem(systems.systems[whichSys-1])
         elif command == '6':
             whichInc = input("What increment do you want to go to? (q to exit, e for end increment) ")
             if (whichInc == "e"):
@@ -88,7 +83,7 @@ def main():
             printStats(systems)
         elif command == 'r':  # Restart
             systems.clearSystems()
-            clearTerminal()
+            terminal.clearTerminal()
             main()
         elif command == 's':
             enterSystemsMenu(systems)
@@ -97,7 +92,7 @@ def main():
 
 if __name__ == "__main__":
     try:
-        clearTerminal()
+        terminal.clearTerminal()
         main()
     except Exception as e:
         print(f"Error: {e}")

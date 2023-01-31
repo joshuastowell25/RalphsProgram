@@ -24,6 +24,10 @@ class DbTestClass(unittest.TestCase):
     def test_take_user_file_input(self):
         take_user_file_input(database.getDbConnection("sp"), "./sp500.csv")
 
+    def test_take_user_file_input(self):
+        dbConn = database.getDbConnection("tsla")
+        take_user_file_input(dbConn, "C:/Users/joshu/Downloads/.csv")
+
     def test_writeDatumToDatabase(self):
         conn = database.getDbConnection("sp")
         database.writeDatumToDatabase(conn, datetime.datetime.now(), 9999.99)

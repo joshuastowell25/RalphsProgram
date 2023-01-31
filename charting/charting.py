@@ -18,10 +18,10 @@ def chartSystem(system: System):
 
     x = range(0, len(datapoints))
     y = [datapoint.price for datapoint in datapoints]
-    np.polyfit(x, y, deg=1)
 
     #figure out a polynomial function that fits the earnings best. Then see how far the data deviate from it as a measure of accuracy
     m, b = np.polyfit(x, system.stats.runningGt, deg=1)
+    result = np.polyfit(x, system.stats.runningGt, deg=2)
 
     priceData = [datapoint.price for datapoint in datapoints]
     fig, ax1 = pyplot.subplots(1, 1) #how many rows and columns of charts you want to display

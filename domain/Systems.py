@@ -1,5 +1,7 @@
+import random
 import statistics
 from statistics import pvariance, variance
+import copy
 
 from calculation.calculation import calculateNormalMaCumulativeTotal
 from dataIO.dataIO import getDatapointsFromDatabase
@@ -34,35 +36,38 @@ class Stat:
     @staticmethod
     def printStatsHeading():
         headingWidth = 12
-        print('GRAND TOTAL'.ljust(headingWidth) +
-        'TRADE COUNT'.ljust(headingWidth) +
-        'WIN COUNT'.ljust(headingWidth) +
-        'LOSS COUNT'.ljust(headingWidth) +
-        'AVG WIN'.ljust(headingWidth) +
-        'AVG LOSS'.ljust(headingWidth) +
-        'MAX WIN'.ljust(headingWidth) +
-        'MAX LOSS'.ljust(headingWidth) +
-        'W/L RATIO'.ljust(headingWidth) +
-        'L/W RATIO'.ljust(headingWidth) +
-        'BALANCE'.ljust(headingWidth) +
-        'DIVISORS'.ljust(headingWidth)
-              )
+        print(
+            'BALANCE'.ljust(headingWidth) +
+            'L/W RATIO'.ljust(headingWidth) +
+            'W/L RATIO'.ljust(headingWidth) +
+            'MAX LOSS'.ljust(headingWidth) +
+            'MAX WIN'.ljust(headingWidth) +
+            'AVG LOSS'.ljust(headingWidth) +
+            'AVG WIN'.ljust(headingWidth) +
+            'LOSS COUNT'.ljust(headingWidth) +
+            'WIN COUNT'.ljust(headingWidth) +
+            'TRADE COUNT'.ljust(headingWidth) +
+            'GRAND TOTAL'.ljust(headingWidth) +
+            'DIVISORS'.ljust(headingWidth)
+        )
     def print(self, divisors, divsorBalance=1):
         headingWidth = 12
         print(
-            str(format(self.runningGt[-1], '.2f')).ljust(headingWidth) +
-            str(self.runningTradeCount[-1]).ljust(headingWidth) +
-            str(self.runningWinCount[-1]).ljust(headingWidth) +
-            str(self.runningLossCount[-1]).ljust(headingWidth) +
-            str(format(float(self.runningWinTotal[-1])/float(self.runningWinCount[-1]), '.2f') if self.runningWinCount[-1] > 0 else '0').ljust(headingWidth) +
-            str(format(float(self.runningLossTotal[-1])/float(self.runningLossCount[-1]), '.2f') if self.runningLossCount[-1] > 0 else '0').ljust(headingWidth) +
-            str(format(self.runningMaxWin[-1], '.2f')).ljust(headingWidth) +
-            str(format(self.runningMaxLoss[-1], '.2f')).ljust(headingWidth) +
-            str(format(float(self.runningWinCount[-1])/float(self.runningLossCount[-1]), '.2f') if self.runningLossCount[-1] > 0 else "N/A").ljust(headingWidth) +
-            str(format(float(self.runningLossCount[-1])/float(self.runningWinCount[-1]), '.2f') if self.runningWinCount[-1] > 0 else "N/A").ljust(headingWidth) +
-            str(format(divsorBalance, '.2f')).ljust(headingWidth) +
-            str(divisors)
+            str(format(divsorBalance, '.2f')).ljust(headingWidth) +  # Balance
+            str(format(float(self.runningLossCount[-1]) / float(self.runningWinCount[-1]), '.2f') if self.runningWinCount[-1] > 0 else "N/A").ljust(headingWidth) +  # LW Ratio
+            str(format(float(self.runningWinCount[-1]) / float(self.runningLossCount[-1]), '.2f') if self.runningLossCount[-1] > 0 else "N/A").ljust(headingWidth) +  # WL Ratio
+            str(format(self.runningMaxLoss[-1], '.2f')).ljust(headingWidth) +  # Max Loss
+            str(format(self.runningMaxWin[-1], '.2f')).ljust(headingWidth) +  # Max Win
+            str(format(float(self.runningLossTotal[-1]) / float(self.runningLossCount[-1]), '.2f') if self.runningLossCount[-1] > 0 else '0').ljust(headingWidth) +  # Avg Loss
+            str(format(float(self.runningWinTotal[-1]) / float(self.runningWinCount[-1]), '.2f') if self.runningWinCount[-1] > 0 else '0').ljust(headingWidth) +  # Avg Win
+            str(self.runningLossCount[-1]).ljust(headingWidth) +  # Loss Count
+            str(self.runningWinCount[-1]).ljust(headingWidth) +  # Win Count
+            str(self.runningTradeCount[-1]).ljust(headingWidth) +  # Trade Count
+            str(format(self.runningGt[-1], '.2f')).ljust(headingWidth) +  #GT
+            str(divisors) +  #divisors
+            ''
         )
+
 
 class Datapoint:
     datetime = None
@@ -103,6 +108,50 @@ class System:
         elif self.systemType == systemTypes.CONFIRMATION:
             self.__calculateCumulativeTotalConfirmation(calculateNormalMaCumulativeTotal(self.divisors[0], data, self.dbConnection), calculateNormalMaCumulativeTotal(self.divisors[1], data, self.dbConnection))
         self.__calculateStats()
+
+    @staticmethod
+    def generateRandomDivisors(self):
+        aParts = []
+        bParts = []
+        divisorCount = random.randint(1,10)
+        for i in range(divisorCount):
+            divisor = random.randint(1, 10) * 2 #random 2 through 20
+            aParts.append(divisor)
+
+    equivalencies = {
+        4: [[2]*4],
+        6: [[2]*9],
+        8: [[2]*16, [4]*4],
+        10: [[2]*25],
+        12: [[2]*36, [6]*4],
+        14: [[2]*49],
+        16: [[2]*64, [8]*4, [4]*16],
+        18: [[2]*81, [6]*9],
+        20: [[2]*100, [10]*4]
+    }
+    def determineAllEquivalentDivisors(self, divisors: [int], depth = 0):
+        equivalentDivisors = []
+
+        for i in range(len(divisors)):
+            newDivisors = copy.deepcopy(divisors)
+            divisor = newDivisors.pop(i)
+
+            if divisor != 2:
+                for equivalency in self.equivalencies[divisor]:
+                    sys = copy.deepcopy(newDivisors) + equivalency
+
+                    if sys not in equivalentDivisors: #We don't want to append duplicates
+                        equivalentDivisors.append(sys)
+
+                        if depth > 0:
+                            eqs = self.determineAllEquivalentDivisors(sys, depth-1)
+                            for item in eqs:
+                                if item not in equivalentDivisors:
+                                    equivalentDivisors.append(item)
+
+        return equivalentDivisors
+
+
 
     def __calculateStats(self):
         data = [datapoint.price for datapoint in self.datapoints]
@@ -258,21 +307,21 @@ class System:
         self.cumulativeTotal = [-1 if cuma[i] < 0 and cumb[i] < 0 else (1 if cuma[i] > 0 and cumb[i] > 0 else 0) for i in range(len(cuma))]  # conf cumulative total calculation
 
     def getDivisors(self):
-        userinput = input("Enter systems, q to finish. ")
+        userinput = input("Enter system, q to finish.\nVersus Example: 10 space 20 space vs space 30 enter.\nPlain Example: 90 enter\n").strip()
         if 'q' in userinput:
             return None
         elif 'vs' in userinput:
             self.systemType = systemTypes.VERSUS
-            sides = userinput.split(" vs ")
-            aTokens = [int(item) for item in sides[0].split(" ")]
-            bTokens = [int(item) for item in sides[1].split(" ")]
+            sides = userinput.split("vs")
+            aTokens = [int(item.strip()) for item in sides[0].strip().split()]
+            bTokens = [int(item.strip()) for item in sides[1].strip().split()]
             self.divisors = [aTokens, bTokens]
             self.divisorBalance = sum([token * token for token in aTokens]) / sum([token * token for token in bTokens])
         elif 'conf' in userinput:
             self.systemType = systemTypes.CONFIRMATION
-            sides = userinput.split(" conf ")
-            aTokens = [int(item) for item in sides[0].split(" ")]
-            bTokens = [int(item) for item in sides[1].split(" ")]
+            sides = userinput.split("conf")
+            aTokens = [int(item.strip()) for item in sides[0].strip().split()]
+            bTokens = [int(item.strip()) for item in sides[1].strip().split()]
             self.divisors = [aTokens, bTokens]
             self.divisorBalance = sum([token * token for token in aTokens]) / sum([token * token for token in bTokens])
         else:

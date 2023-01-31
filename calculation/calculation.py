@@ -7,6 +7,8 @@ maType = MaTypes.RalphStyle # the default desired moving average type
 def calculateNormalMaCumulativeTotal(divisors, data, dbConnection=None):
     global maType
     import time
+    print("Calculating...", end="")
+    print("\r", end="")
 
     result = [0] * len(data)
     for divisor in divisors:

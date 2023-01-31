@@ -15,6 +15,11 @@ class MyTestCase(unittest.TestCase):
         systems.addSystem(System([[10,20,30],[40,50,60]], systemTypes.VERSUS))
         systems.systems[0].stats.print()
 
+    def test_determineAllEquivalentDivisors(self):
+        system = System()
+        eq = system.determineAllEquivalentDivisors([20], 4)
+        print(eq)
+
 
 if __name__ == '__main__':
     unittest.main()

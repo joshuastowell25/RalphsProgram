@@ -16,7 +16,7 @@ from config import getConfig
 # the database name given is generally a 'company name' e.g.:es, sp1985, etc.
 def getDbConnection(companyName):
     conn = None
-    print("Attempting to connect, please wait")
+    #print("Attempting to connect, please wait")
     try:
         conn = mariadb.connect(
             user=getConfig('DatabaseSection','db.user'),
