@@ -1,7 +1,7 @@
 import constants as const
 from string import ascii_uppercase
 import re
-from domain import System, Systems, systemTypes
+from domain import System, Systems, systemTypes, Datapoint
 
 
 class systemKeys:
@@ -55,9 +55,8 @@ def enterSystemsMenu(systems, versusSystems, confirmationSystems):
         keyContinue()
 
 #asks the user to enter the systems to be calculated
-def getSystems(dbConnection):
-    systems = Systems(dbConnection)
-
+def getSystems():
+    systems = Systems()
     while True:
         system = System()
         if system.getDivisors():

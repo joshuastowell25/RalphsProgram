@@ -23,7 +23,8 @@ def getDbConnection(companyName):
             password=getConfig('DatabaseSection','db.password'),
             host=getConfig('DatabaseSection','db.host'),
             port=int(getConfig('DatabaseSection','db.port')),
-            database=companyName
+            database=companyName,
+            connect_timeout=2
         )
     except mariadb.Error as e:
         print(f"Error connecting to MariaDB: {e}. Has the database IP address changed or is the server powered down?")
@@ -78,20 +79,18 @@ def getCompanyList(dbConnection):
     return companyList
 
 #Each "company" aka database has several tables. The 'main' table is called 'data' the other tables are where the calculated moving averages lie.
-def loadDataFromDatabase(dbConnection):
-    data=[]
-    dates=[]
+def load_datapoints(dbConnection):
+    datapoints = []
     cursor = dbConnection.cursor()
     try:
         cursor.execute("SELECT time, value FROM data")
         for (line) in cursor:
-            dates.append(line[0])
-            data.append(float(line[1]))
+            datapoints.append(domain.Datapoint(line[0], float(line[1])))
     except mariadb.Error as e:
         pass
         # print(f"Error loading column: {e}")
 
-    return data, dates
+    return datapoints
 
 #dt is a python datetime type, datum is the price of the stock
 def writeDatumToDatabase(dbConnection, dt, datum):

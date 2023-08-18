@@ -1,10 +1,7 @@
 import random
-import statistics
-from statistics import pvariance, variance
 import copy
 
 from calculation.calculation import calculateNormalMaCumulativeTotal
-from dataIO.dataIO import getDatapointsFromDatabase
 import abc
 class systemTypes:
     NORMAL = 0
@@ -328,18 +325,17 @@ class System:
             self.systemType = systemTypes.NORMAL
             self.divisors = [int(item) for item in userinput.split(" ")]
         return self.divisors
+
 class Systems:
     dbConnection = None
     datapoints: list[Datapoint] = []
     systems: list[System] = []
 
-    def __init__(self, dbConnection=None):
-        self.dbConnection = dbConnection
-        self.datapoints = getDatapointsFromDatabase(self.dbConnection)
+    def __init__(self):
+        pass
 
-    def setDbConnection(self, dbConnection):
-        self.dbConnection = dbConnection
-        self.datapoints = getDatapointsFromDatabase(self.dbConnection)
+    def setDatapoints(self, datapoints: list[Datapoint]):
+        self.datapoints = datapoints
         for system in self.systems:
             system.datapoints = self.datapoints
             system.calculate()

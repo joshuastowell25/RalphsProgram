@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import os, sys, traceback
-import charting
 import shutil
 import terminal
-from dataIO.dataIO import getDbConnection
-from domain import Systems, Stat
+from dataIO.dataIO import get_data
+from database import database
+from domain import Systems, Stat, Datapoint
 from systems import getSystems, enterSystemsMenu
 
 
@@ -51,7 +51,9 @@ def isValidDecimal(input):
         return True
 
 def main():
-    systems = getSystems(getDbConnection())
+    systems: Systems = getSystems()
+    datapoints: list[Datapoint] = get_data()
+    systems.setDatapoints(datapoints)
     currentLine = len(systems.datapoints) - screenHeight()
     printCumulativeTotals(systems, currentLine)
     printStats(systems)
@@ -64,11 +66,13 @@ def main():
             return
         elif command == 'c':
             terminal.clearTerminal()
-            systems.setDbConnection(getDbConnection())
+            datapoints: list[Datapoint] = get_data()
+            systems.setDatapoints(datapoints)
             currentLine = len(systems.datapoints) - screenHeight()
             printCumulativeTotals(systems, currentLine)
             printStats(systems)
         elif command == 'chart':
+            import charting
             whichSys = int(input("Which system do you want to chart? (e.g. 1, 2, 3, etc) "))
             charting.chartSystem(systems.systems[whichSys-1])
         elif command == '6':

@@ -5,6 +5,14 @@ import domain
 import terminal
 from constants import DATA_PATH
 
+def get_data():
+    companyName = input("What data file do you want to use? \n")
+    dbConnection = database.getDbConnection(companyName)
+    if dbConnection is None:
+        print(f"No database entry exists for file named {companyName}, checking local files.")
+    else:
+        return getDatapointsFromDatabase(dbConnection)
+    return getDataFromFile(companyName+".csv")
 
 #Remember each database connection currently represents a company
 def getDbConnection():
@@ -13,20 +21,12 @@ def getDbConnection():
         companyName = input("What data file do you want to use? \n")
         dbConnection = database.getDbConnection(companyName)
         if dbConnection is None:
-            print("No file exists named " + companyName)
+            print("Company name not in database: " + companyName)
     terminal.clearTerminal()
     return dbConnection
 
 def getDatapointsFromDatabase(dbConnection = None):
-    datapoints = []
-    if dbConnection is None:
-        dbConnection = getDbConnection()
-    data, dates = database.loadDataFromDatabase(dbConnection)
-    for i in range(len(data)):
-        datapoints.append(domain.Datapoint(dates[i], data[i]))
-    return datapoints
-
-
+    return database.load_datapoints(dbConnection)
 
 #gets an array of data from a particular flat file instead of the database
 def getDataFromFile(filename = None): #filename defaults to None
@@ -36,33 +36,38 @@ def getDataFromFile(filename = None): #filename defaults to None
             if filename is None:
                 filename = input("What data file do you want to use? \n")
             filename = filename.lower()
-            filename += ".dat"
-            file_handle = open(os.path.join(DATA_PATH, filename), 'r')
+            file_path = os.path.join(DATA_PATH, filename)
+            file_handle = open(file_path, mode='r', encoding='utf-8-sig')
         except Exception as e:
-            print("No file exists named "+filename)
+            print("File does not exist: "+file_path)
             filename = None
 
     lines_list = file_handle.readlines()
     data = []
     datetimes = []
+    datapoints = []
     for line in lines_list:
         tokens = line.split(",")
-        if(len(tokens) > 5):
+
+        if(len(tokens) > 5): #OHLCV: open, high, low, close, vol
             data.append(float(tokens[5]))
             dateTimeStr = tokens[0]+" "+tokens[1] #e.g. '06/29/2019 08:15'
             dateTimeObj = datetime.strptime(dateTimeStr, '%m/%d/%Y %H:%M:%S')
             datetimes.append(dateTimeObj)
-        elif len(tokens)>1:
+            datapoints.append(domain.Datapoint(dateTimeObj, float(tokens[5])))
+        elif len(tokens) == 3: #tokens = ['1000', '08/18/2023', '\n']
             data.append(float(tokens[0]))
-            dateTimeStr = tokens[1]+ " 16:00:00"
+            dateTimeStr = tokens[1] + " 16:00:00"
             dateTimeObj = datetime.strptime(dateTimeStr, '%m/%d/%Y %H:%M:%S')
             datetimes.append(dateTimeObj)
-        else:
+            datapoints.append(domain.Datapoint(dateTimeObj, float(tokens[0])))
+        elif len(tokens) == 2: #tokens = ['1000', '\n']
             data.append(float(tokens[0]))
-    print ("\n")
+            datapoints.append(domain.Datapoint(datetime.now(), float(tokens[0])))
     if(len(datetimes) == 0):
         datetimes = None
-    return {"data": data, "filename": filename, "dates": datetimes}
+
+    return datapoints
 
 #saves data to a given filename
 def saveDataToFile(data, filename, dates=None):
