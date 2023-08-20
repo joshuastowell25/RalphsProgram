@@ -73,6 +73,7 @@ class Datapoint:
     def __init__(self, datetime, price):
         self.datetime = datetime
         self.price = price
+
 class System:
     dbConnection = None
     datapoints: list[Datapoint] = []
@@ -332,6 +333,8 @@ class Systems:
     systems: list[System] = []
 
     def __init__(self):
+        self.systems = []
+        self.datapoints = []
         pass
 
     def setDatapoints(self, datapoints: list[Datapoint]):
@@ -346,8 +349,7 @@ class Systems:
         system.calculate()
 
     def clearSystems(self):
-        for system in self.systems:
-            self.systems.pop()
+        self.systems = []
 
 class TradingStrategyInterface(metaclass=abc.ABCMeta):
     @classmethod

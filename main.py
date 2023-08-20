@@ -2,10 +2,9 @@
 import os, sys, traceback
 import shutil
 import terminal
-from dataIO.dataIO import get_data
-from database import database
 from domain import Systems, Stat, Datapoint
 from systems import getSystems, enterSystemsMenu
+from datasources import alphaVantage
 
 
 # gets the number of lines in the terminal
@@ -52,7 +51,7 @@ def isValidDecimal(input):
 
 def main():
     systems: Systems = getSystems()
-    datapoints: list[Datapoint] = get_data()
+    datapoints: list[Datapoint] = alphaVantage.get_data()
     systems.setDatapoints(datapoints)
     currentLine = len(systems.datapoints) - screenHeight()
     printCumulativeTotals(systems, currentLine)
@@ -66,7 +65,7 @@ def main():
             return
         elif command == 'c':
             terminal.clearTerminal()
-            datapoints: list[Datapoint] = get_data()
+            datapoints: list[Datapoint] = alphaVantage.get_data()
             systems.setDatapoints(datapoints)
             currentLine = len(systems.datapoints) - screenHeight()
             printCumulativeTotals(systems, currentLine)
