@@ -1,6 +1,7 @@
 import unittest
 
 import datasource.datasources.DataSource
+from datasource.datasources.OfflineFlatFileDataSource import OfflineFlatFileDataSource #from the file import the class
 
 
 class DataSourceTestClass(unittest.TestCase):
@@ -8,3 +9,6 @@ class DataSourceTestClass(unittest.TestCase):
         datasource.datasources.DataSource.getDataSource()
 
     def test_OfflineFlatFileDataSource(self):
+        source = OfflineFlatFileDataSource()
+        data = source.getData()
+        print(data)

@@ -1,5 +1,5 @@
 from typing import List
-import DataSource
+from datasource.datasources.DataSource import DataSource, DataSourceType #From the file import the interface
 import domain
 from dataIO import getDataFromFile
 import os
@@ -7,7 +7,7 @@ import constants
 
 
 class OfflineFlatFileDataSource(DataSource):
-    dataSourceType: DataSource.DataSourceType = DataSource.DataSourceType.OFFLINE
+    dataSourceType: DataSourceType = DataSourceType.OFFLINE
 
     def __init__(self):
         pass
