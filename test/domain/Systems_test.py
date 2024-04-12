@@ -4,7 +4,7 @@ from domain.Systems import System, Systems
 from systems.systemIO import systemTypes
 
 
-class MyTestCase(unittest.TestCase):
+class SystemsTestClass(unittest.TestCase):
     def test_normal_ma(self):
         db_connection = getDbConnection("sp")
         datapoints = load_datapoints(db_connection)

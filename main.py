@@ -4,7 +4,8 @@ import shutil
 import terminal
 from domain import Systems, Stat, Datapoint
 from systems import getSystems, enterSystemsMenu
-from datasources import alphaVantage
+from datasource import alphaVantage
+from datasource.datasources import DataSource
 
 
 # gets the number of lines in the terminal
@@ -50,6 +51,7 @@ def isValidDecimal(input):
         return True
 
 def main():
+    datasource = DataSource.getDataSource()
     systems: Systems = getSystems()
     datapoints: list[Datapoint] = alphaVantage.get_data()
     systems.setDatapoints(datapoints)

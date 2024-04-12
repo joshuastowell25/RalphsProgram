@@ -2,7 +2,7 @@ import unittest
 from typing import List
 
 import domain
-from datasources import alphaVantage
+from datasource import alphaVantage
 
 class TestAlphaVantage(unittest.TestCase):
 
