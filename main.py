@@ -4,7 +4,7 @@ import shutil
 import terminal
 from domain import Systems, Stat, Datapoint
 from systems import getSystems, enterSystemsMenu
-from datasource import alphaVantage
+from datasource import alphaVantage, datasource_utils
 from datasource.datasources import DataSource
 
 
@@ -51,9 +51,10 @@ def isValidDecimal(input):
         return True
 
 def main():
-    datasource = DataSource.getDataSource()
+    datasource = datasource_utils.getDataSource()
+    #datapoints: list[Datapoint] = alphaVantage.get_data()
+    datapoints = datasource.getData()
     systems: Systems = getSystems()
-    datapoints: list[Datapoint] = alphaVantage.get_data()
     systems.setDatapoints(datapoints)
     currentLine = len(systems.datapoints) - screenHeight()
     printCumulativeTotals(systems, currentLine)

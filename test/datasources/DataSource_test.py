@@ -11,4 +11,5 @@ class DataSourceTestClass(unittest.TestCase):
     def test_OfflineFlatFileDataSource(self):
         source = OfflineFlatFileDataSource()
         data = source.getData()
-        print(data)
+
+        print(list(map(lambda x: str(x), data)))

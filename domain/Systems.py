@@ -74,6 +74,9 @@ class Datapoint:
         self.datetime = datetime
         self.price = price
 
+    def __str__(self):
+        return str(self.price)
+
 class System:
     dbConnection = None
     datapoints: list[Datapoint] = []
