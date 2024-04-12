@@ -45,6 +45,7 @@ def getDataFromFile(filename = None) -> List[domain.Datapoint]: #filename defaul
             filename = None
 
     lines_list = file_handle.readlines()
+    file_handle.close()
     datapoints: List[domain.Datapoint] = []
     for line in lines_list:
         tokens = line.split(",")
@@ -59,6 +60,8 @@ def getDataFromFile(filename = None) -> List[domain.Datapoint]: #filename defaul
             datapoints.append(domain.Datapoint(dateTimeObj, float(tokens[0])))
         elif len(tokens) == 2: #tokens = ['1000', '\n']
             datapoints.append(domain.Datapoint(datetime.now(), float(tokens[0])))
+        elif len(tokens) == 1: #tokens = ['1006.20\n']
+            datapoints.append(domain.Datapoint(datetime.now(), float(tokens[0].replace("\n",""))))
 
     return datapoints
 

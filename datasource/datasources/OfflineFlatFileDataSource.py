@@ -19,7 +19,6 @@ class OfflineFlatFileDataSource(DataSource):
         companyChoices = os.listdir(constants.DATA_PATH)
         print(f"data file choices are: {companyChoices}")
         companyName = input("What data file do you want to use? \n")
-        return getDataFromFile(companyName+".csv")
-
-    def dataSourceType(self):
-        return self.dataSourceType
+        datapoints = getDataFromFile(companyName+".csv")
+        print(f"Loaded {len(datapoints)} datapoints from {companyName}.csv")
+        return datapoints

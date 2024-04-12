@@ -12,6 +12,6 @@ def getDataSource():
     data_source_list = detectAvailableDataSources()
     selection = input(f"What data source do you want to use? Options are: {list(map(lambda x: str(x), data_source_list))}\n")
     for source in DATA_SOURCES:
-        if selection == source.getDataSourceType():
+        if selection == source.dataSourceType:
             return source
     return None
