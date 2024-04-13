@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from typing import List
 from data_connectors.mariaDb import getDbConnection, load_datapoints, writeDatumToDatabase
-import domain
+from domain.Datapoint import Datapoint #from the file import the class
 import utils
 from constants import DATA_PATH
 
@@ -30,7 +30,7 @@ def getDatapointsFromDatabase(dbConnection = None):
     return load_datapoints(dbConnection)
 
 #gets an array of data from a particular flat file instead of the database
-def getDataFromFile(filename = None) -> List[domain.Datapoint]: #filename defaults to None
+def getDataFromFile(filename = None) -> List[Datapoint]: #filename defaults to None
     file_handle = None
     while(file_handle is None):
         try:
@@ -45,22 +45,22 @@ def getDataFromFile(filename = None) -> List[domain.Datapoint]: #filename defaul
 
     lines_list = file_handle.readlines()
     file_handle.close()
-    datapoints: List[domain.Datapoint] = []
+    datapoints: List[Datapoint] = []
     for line in lines_list:
         tokens = line.split(",")
 
         if(len(tokens) > 5): #OHLCV: open, high, low, close, vol
             dateTimeStr = tokens[0]+" "+tokens[1] #e.g. '06/29/2019 08:15'
             dateTimeObj = datetime.strptime(dateTimeStr, '%m/%d/%Y %H:%M:%S')
-            datapoints.append(domain.Datapoint(dateTimeObj, float(tokens[5])))
+            datapoints.append(Datapoint(dateTimeObj, float(tokens[5])))
         elif len(tokens) == 3: #tokens = ['1000', '08/18/2023', '\n']
             dateTimeStr = tokens[1] + " 16:00:00"
             dateTimeObj = datetime.strptime(dateTimeStr, '%m/%d/%Y %H:%M:%S')
-            datapoints.append(domain.Datapoint(dateTimeObj, float(tokens[0])))
+            datapoints.append(Datapoint(dateTimeObj, float(tokens[0])))
         elif len(tokens) == 2: #tokens = ['1000', '\n']
-            datapoints.append(domain.Datapoint(datetime.now(), float(tokens[0])))
+            datapoints.append(Datapoint(datetime.now(), float(tokens[0])))
         elif len(tokens) == 1: #tokens = ['1006.20\n']
-            datapoints.append(domain.Datapoint(datetime.now(), float(tokens[0].replace("\n",""))))
+            datapoints.append(Datapoint(datetime.now(), float(tokens[0].replace("\n",""))))
 
     return datapoints
 

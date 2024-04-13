@@ -3,9 +3,6 @@ from domain.Datapoint import Datapoint
 from domain.System import System
 from utils import enum
 
-systemTypes = enum(NORMAL="NORMAL", VERSUS="VERSUS", CONFIRMATION="CONFIRMATION")
-positions = enum(LONG="LONG", SHORT="SHORT", FLAT="FLAT")
-
 class Systems:
     dbConnection = None
     datapoints: list[Datapoint] = []

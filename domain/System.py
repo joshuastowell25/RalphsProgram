@@ -1,8 +1,12 @@
 import copy
 import random
-
+from domain.Datapoint import Datapoint
+from domain.Stat import Stat
+from utils import enum
 from calculation import calculateNormalMaCumulativeTotal
-from domain import systemTypes, Stat, Datapoint, positions
+
+positions = enum(LONG="LONG", SHORT="SHORT", FLAT="FLAT")
+systemTypes = enum(NORMAL="NORMAL", VERSUS="VERSUS", CONFIRMATION="CONFIRMATION")
 
 class System:
     dbConnection = None
@@ -19,7 +23,7 @@ class System:
         self.stats = Stat()
 
     def __str__(self):
-        return f"TODO: systemType:{self.systemType}, divisors:{self.divisors}"
+        return f"systemType:{self.systemType}, divisors:{self.divisors}"
 
     def getDivisorString(self):
         if self.systemType == systemTypes.NORMAL:

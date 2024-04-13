@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 import os, sys, traceback
 import shutil
-import terminal
 
 import utils
-from domain import Systems, Stat, Datapoint
+from domain.Stat import Stat
+from domain.Datapoint import Datapoint
+from domain.Systems import Systems
 from systems import getSystems, enterSystemsMenu
 from data_connectors import alphaVantage, connector_utils
-from data_connectors.connectors import ConnectorInterface
-
 
 # gets the number of lines in the terminal
 def screenHeight():
@@ -53,9 +52,8 @@ def isValidDecimal(input):
         return True
 
 def main():
-    datasource = datasource_utils.getDataSource()
-    #datapoints: list[Datapoint] = alphaVantage.get_data()
-    datapoints = datasource.getData()
+    datasource = connector_utils.getDataSource()
+    datapoints: list[Datapoint] = datasource.getData()
     systems: Systems = getSystems()
     systems.setDatapoints(datapoints)
     currentLine = len(systems.datapoints) - screenHeight()
@@ -70,7 +68,7 @@ def main():
             return
         elif command == 'c':
             utils.clearTerminal()
-            datapoints: list[Datapoint] = alphaVantage.get_data()
+            datapoints: list[Datapoint] = datasource.getData()
             systems.setDatapoints(datapoints)
             currentLine = len(systems.datapoints) - screenHeight()
             printCumulativeTotals(systems, currentLine)

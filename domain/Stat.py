@@ -1,6 +1,4 @@
 
-
-
 class Stat:
     gt = 0
     runningGt = []

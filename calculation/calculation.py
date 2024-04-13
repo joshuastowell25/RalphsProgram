@@ -1,7 +1,9 @@
-from constants import MaTypes
 from data_connectors.mariaDb import loadMaColumn, saveColumn
+from utils import enum
 
-maType = MaTypes.RalphStyle # the default desired moving average type
+#MaTypes.RalphStyle and MaTypes.NormalStyle
+MaTypes = enum(RalphStyle = 1, NormalStyle = 2)
+maType = MaTypes.RalphStyle #The desired moving average type
 
 # given a list of numbers to comprise a system, calculates that system's column
 def calculateNormalMaCumulativeTotal(divisors, data, dbConnection=None):

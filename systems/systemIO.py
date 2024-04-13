@@ -1,6 +1,7 @@
 import constants
 import utils
-from domain import System, Systems
+from domain.System import System
+from domain.Systems import Systems
 
 #Lists the names of the saved systems so the user can select one to open
 def listSavedSystems():
