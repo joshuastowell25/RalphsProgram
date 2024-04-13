@@ -3,7 +3,7 @@ import random
 from domain.Datapoint import Datapoint
 from domain.Stat import Stat
 from utils import enum
-from calculation import calculateNormalMaCumulativeTotal
+from calculation import calculateCumulativeTotal
 
 positions = enum(LONG="LONG", SHORT="SHORT", FLAT="FLAT")
 systemTypes = enum(NORMAL="NORMAL", VERSUS="VERSUS", CONFIRMATION="CONFIRMATION")
@@ -36,11 +36,11 @@ class System:
     def calculate(self):
         data = [point.price for point in self.datapoints]
         if self.systemType == systemTypes.NORMAL:
-            self.cumulativeTotal = calculateNormalMaCumulativeTotal(self.divisors, data, self.dbConnection)
+            self.cumulativeTotal = calculateCumulativeTotal(self.divisors, data, self.dbConnection)
         elif self.systemType == systemTypes.VERSUS:
-            self.__calculateCumulativeTotalVersus(calculateNormalMaCumulativeTotal(self.divisors[0], data, self.dbConnection), calculateNormalMaCumulativeTotal(self.divisors[1], data, self.dbConnection))
+            self.__calculateCumulativeTotalVersus(calculateCumulativeTotal(self.divisors[0], data, self.dbConnection), calculateCumulativeTotal(self.divisors[1], data, self.dbConnection))
         elif self.systemType == systemTypes.CONFIRMATION:
-            self.__calculateCumulativeTotalConfirmation(calculateNormalMaCumulativeTotal(self.divisors[0], data, self.dbConnection), calculateNormalMaCumulativeTotal(self.divisors[1], data, self.dbConnection))
+            self.__calculateCumulativeTotalConfirmation(calculateCumulativeTotal(self.divisors[0], data, self.dbConnection), calculateCumulativeTotal(self.divisors[1], data, self.dbConnection))
         self.__calculateStats()
 
     @staticmethod

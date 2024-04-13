@@ -1,12 +1,11 @@
 from data_connectors.mariaDb import loadMaColumn, saveColumn
 from utils import enum
 
-#MaTypes.RalphStyle and MaTypes.NormalStyle
 MaTypes = enum(RalphStyle = 1, NormalStyle = 2)
 maType = MaTypes.RalphStyle #The desired moving average type
 
 # given a list of numbers to comprise a system, calculates that system's column
-def calculateNormalMaCumulativeTotal(divisors, data, dbConnection=None):
+def calculateCumulativeTotal(divisors, data, dbConnection=None):
     global maType
     import time
     print("Calculating...", end="")

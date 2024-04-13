@@ -7,7 +7,7 @@ from domain.Stat import Stat
 from domain.Datapoint import Datapoint
 from domain.Systems import Systems
 from systems import getSystems, enterSystemsMenu
-from data_connectors import alphaVantage, connector_utils
+from data_connectors import connector_utils
 
 # gets the number of lines in the terminal
 def screenHeight():
