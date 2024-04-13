@@ -3,7 +3,7 @@ import json
 import constants as const
 
 #'{"name": "mySystem1", "maType": "r", "systems": [[2], [4,10,20], [6]]}'
-class Setup:
+class UserOptions:
     name=""
     maType=""
     systems=[]
@@ -30,7 +30,7 @@ class Setup:
 
     #writes this setup to the setup file with its name
     def writeToFile(self):
-        file = open(os.path.join(const.SAVED_SETUPS_PATH, self.name, ".sys"), 'w')
+        file = open(os.path.join(const.SAVED_USER_OPTIONS_PATH, self.name, ".sys"), 'w')
         asJson = json.dump(self)
         file.write(asJson)
         file.close()

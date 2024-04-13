@@ -1,4 +1,4 @@
-from datasource.datasources.OfflineFlatFileDataSource import OfflineFlatFileDataSource
+from data_connectors.connectors.FlatFileConnector import OfflineFlatFileDataSource
 
 DATA_SOURCES = [OfflineFlatFileDataSource()] #TODO: add others later
 

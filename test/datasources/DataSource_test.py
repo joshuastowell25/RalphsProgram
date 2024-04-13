@@ -1,12 +1,12 @@
 import unittest
 
-import datasource.datasources.DataSource
-from datasource.datasources.OfflineFlatFileDataSource import OfflineFlatFileDataSource #from the file import the class
+import data_connectors.connectors.ConnectorInterface
+from data_connectors.connectors.FlatFileConnector import OfflineFlatFileDataSource #from the file import the class
 
 
 class DataSourceTestClass(unittest.TestCase):
     def test_get_datasource(self):
-        datasource.datasources.DataSource.getDataSource()
+        data_connectors.datasources.DataSource.getDataSource()
 
     def test_OfflineFlatFileDataSource(self):
         source = OfflineFlatFileDataSource()

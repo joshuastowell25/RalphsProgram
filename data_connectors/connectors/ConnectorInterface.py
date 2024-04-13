@@ -1,11 +1,12 @@
 from typing import List
 import abc
 import domain
-from constants import enum
+from utils import enum
+from domain.Datapoint import Datapoint #from the file import the class
 
 DataSourceType = enum(OFFLINE="OFFLINE", MARIADB="MARIADB", BIGQUERY="BIGQUERY")
 
-class DataSource(): #metaclass=abc.ABCMeta): #Interface
+class DataConnector():
     dataSourceType: DataSourceType
 
     @abc.abstractmethod
@@ -23,6 +24,10 @@ class DataSource(): #metaclass=abc.ABCMeta): #Interface
     @property
     def dataSourceType(self):
         return self.dataSourceType
+
+    @abc.abstractmethod
+    def writeDatapoint(self, datapoint: Datapoint):
+        raise NotImplementedError
 
     def __str__(self):
         return str(self.dataSourceType)

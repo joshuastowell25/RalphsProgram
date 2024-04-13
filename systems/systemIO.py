@@ -1,19 +1,12 @@
-import constants as const
-from string import ascii_uppercase
-import re
-from domain import System, Systems, systemTypes, Datapoint
-
-
-class systemKeys:
-    DIVISORS = "divisors",
-    TYPE = "type"
-    CUMULATIVE_TOTAL = "cumulative_total"
+import constants
+import utils
+from domain import System, Systems
 
 #Lists the names of the saved systems so the user can select one to open
 def listSavedSystems():
     import os
     index = 0
-    files = os.listdir(const.SAVED_SETUPS_PATH)
+    files = os.listdir(constants.SAVED_USER_OPTIONS_PATH)
     for filename in files:
         index = index + 1
         print(index," ", filename)
@@ -22,26 +15,22 @@ def listSavedSystems():
 #prints the saved divisors in the given sys file
 def printSavedSys(filename):
     import os
-    file_handle = open(os.path.join(const.SAVED_SETUPS_PATH, filename), 'r')
+    file_handle = open(os.path.join(constants.SAVED_USER_OPTIONS_PATH, filename), 'r')
     lines_list = file_handle.readlines()
     for line in lines_list:
         print(line)
-
-def clearTerminal():
-    import os
-    os.system('cls' if os.name == 'nt' else 'clear')    
 
 def showSetup(setup):
     print("")
 
 def keyContinue():
     input("\nPress any key to continue...")
-    clearTerminal()
+    utils.clearTerminal()
 
 #displays the commands for the systems menu. 
 #arg1: systems: Given to the systems menu for printing
-def enterSystemsMenu(systems, versusSystems, confirmationSystems):
-    clearTerminal()
+def enterSystemsMenu(systems: Systems):
+    utils.clearTerminal()
     command = 0
     print("Welcome to the systems menu. Please select from the following options:")
     while command != 'q':
@@ -51,7 +40,8 @@ def enterSystemsMenu(systems, versusSystems, confirmationSystems):
         elif command == 'v':
             listSavedSystems()
         elif command == 's':
-            printSystems(systems, versusSystems, confirmationSystems)
+            for system in systems.getSystems():
+                print(str(system))
         keyContinue()
 
 #asks the user to enter the systems to be calculated

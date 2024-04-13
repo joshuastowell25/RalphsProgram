@@ -1,12 +1,12 @@
 from typing import List
-from datasource.datasources.DataSource import DataSource, DataSourceType #From the file import the interface
+from data_connectors.connectors.ConnectorInterface import DataConnector, DataSourceType #From the file import the interface
 import domain
 from dataIO import getDataFromFile
 import os
 import constants
 
 
-class OfflineFlatFileDataSource(DataSource):
+class OfflineFlatFileDataSource(DataConnector):
     dataSourceType: DataSourceType = DataSourceType.OFFLINE
 
     def __init__(self):

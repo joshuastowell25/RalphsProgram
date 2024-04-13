@@ -1,6 +1,8 @@
 # Module Imports
 import mariadb
 import sys
+
+import domain
 from config import getConfig
 
 #https://mariadb.com/resources/blog/how-to-connect-python-programs-to-mariadb/

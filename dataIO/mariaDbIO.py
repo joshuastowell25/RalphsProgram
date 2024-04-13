@@ -1,15 +1,14 @@
 import os
 from datetime import datetime
 from typing import List
-
-import database
+from data_connectors.mariaDb import getDbConnection, load_datapoints, writeDatumToDatabase
 import domain
-import terminal
+import utils
 from constants import DATA_PATH
 
 def get_data():
     companyName = input("What data file do you want to use? \n")
-    dbConnection = database.getDbConnection(companyName)
+    dbConnection = getDbConnection(companyName)
     if dbConnection is None:
         print(f"No database entry exists for file named {companyName}, checking local files.")
     else:
@@ -21,14 +20,14 @@ def getDbConnection():
     dbConnection = None
     while (dbConnection is None):
         companyName = input("What data file do you want to use? \n")
-        dbConnection = database.getDbConnection(companyName)
+        dbConnection = getDbConnection(companyName)
         if dbConnection is None:
             print("Company name not in database: " + companyName)
-    terminal.clearTerminal()
+    utils.clearTerminal()
     return dbConnection
 
 def getDatapointsFromDatabase(dbConnection = None):
-    return database.load_datapoints(dbConnection)
+    return load_datapoints(dbConnection)
 
 #gets an array of data from a particular flat file instead of the database
 def getDataFromFile(filename = None) -> List[domain.Datapoint]: #filename defaults to None
@@ -65,7 +64,7 @@ def getDataFromFile(filename = None) -> List[domain.Datapoint]: #filename defaul
 
     return datapoints
 
-#saves data to a given filename
+#saves data to a given filename #TODO needs revamp to use Datapoint class
 def saveDataToFile(data, filename, dates=None):
     hasDates = (dates != None)
     with open(os.path.join(DATA_PATH, filename), 'w') as filehandle:
@@ -75,31 +74,6 @@ def saveDataToFile(data, filename, dates=None):
             else:
                 filehandle.write(str(data[i])+"\n")
         filehandle.close()
-
-def clearTerminal():
-    import os
-    os.system('cls' if os.name == 'nt' else 'clear')    
-
-#displays the commands for the systems menu. 
-def dataMenu(dbConnection = None):
-    if dbConnection is None:
-        dbConnection = getDbConnection()
-    clearTerminal()
-    command = 0
-    print("Welcome to the data menu. Please select from the following options:")
-    while command != 'q':
-        command = input("DATA MENU: b=back, v=view companies, e=data entry, l=load from file\n")
-        if command == 'q' or command == 'b':
-            return
-        elif command == 'v':
-            print("COMPANY LIST")
-            companyList = database.getCompanyList()
-            print(companyList)
-            return 
-        elif command == 'e':
-            take_user_data_input(dbConnection)
-        elif command == 'l':
-            pass #TODO
 
 def take_user_file_input(dbConnection, file_path=None):
     print("DATA FILE INPUT MENU")
@@ -112,7 +86,7 @@ def take_user_file_input(dbConnection, file_path=None):
                 data = line.split(",")
                 datetime_object = datetime.strptime(data[0], '%m/%d/%Y').replace(hour=16,minute=00)  # assume closing time (4pm eastern time)
                 price = data[1]
-                database.writeDatumToDatabase(dbConnection, datetime_object, price)
+                writeDatumToDatabase(dbConnection, datetime_object, price)
                 line = file.readline()
     dbConnection.commit()
 
@@ -129,7 +103,7 @@ def take_user_data_input(dbConnection):
             date_input = input("Provide the price associated with your date in this format: mm/dd/yyyy (q to quit)")
             if date_input == 'q':
                 return
-            datetime_object = datetime.strptime(date_input, '%m/%d/%Y').replace(hour=16,minute=00)  # assume closing time (4pm eastern time)
+            datetime_object = datetime.strptime(date_input, '%m/%d/%Y').replace(hour=16, minute=00)  # assume closing time (4pm eastern time)
             value_input = input("What is the price? (q to quit)")
             if value_input == 'q':
                 return
@@ -142,7 +116,7 @@ def take_user_data_input(dbConnection):
 
             confirm_input = input(f"Does this look right? The price at {datetime_object} was {datum}. Enter y or n")
             if confirm_input == 'y':
-                database.writeDatumToDatabase(dbConnection, datetime_object, datum)
+                writeDatumToDatabase(dbConnection, datetime_object, datum)
                 dbConnection.commit()
             else:
                 take_user_data_input(dbConnection)

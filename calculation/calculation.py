@@ -1,5 +1,5 @@
 from constants import MaTypes
-from database import loadMaColumn, saveColumn
+from data_connectors.mariaDb import loadMaColumn, saveColumn
 
 maType = MaTypes.RalphStyle # the default desired moving average type
 

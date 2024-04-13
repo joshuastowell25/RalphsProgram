@@ -2,10 +2,12 @@
 import os, sys, traceback
 import shutil
 import terminal
+
+import utils
 from domain import Systems, Stat, Datapoint
 from systems import getSystems, enterSystemsMenu
-from datasource import alphaVantage, datasource_utils
-from datasource.datasources import DataSource
+from data_connectors import alphaVantage, connector_utils
+from data_connectors.connectors import ConnectorInterface
 
 
 # gets the number of lines in the terminal
@@ -63,11 +65,11 @@ def main():
     command = 0
     while command != 'q':
         command = input(
-            "commands: 6=page, c=change company, g=grand_totals, q=quit, r=restart, t=time window, s=systems menu, chart=chart")
+            "commands: 6=page, c=change company, g=grand_totals, q=quit, r=restart, s=systems menu, chart=chart")
         if command == 'q':
             return
         elif command == 'c':
-            terminal.clearTerminal()
+            utils.clearTerminal()
             datapoints: list[Datapoint] = alphaVantage.get_data()
             systems.setDatapoints(datapoints)
             currentLine = len(systems.datapoints) - screenHeight()
@@ -89,7 +91,7 @@ def main():
             printStats(systems)
         elif command == 'r':  # Restart
             systems.clearSystems()
-            terminal.clearTerminal()
+            utils.clearTerminal()
             main()
         elif command == 's':
             enterSystemsMenu(systems)
@@ -98,7 +100,7 @@ def main():
 
 if __name__ == "__main__":
     try:
-        terminal.clearTerminal()
+        utils.clearTerminal()
         main()
     except Exception as e:
         print(f"Error: {e}")
