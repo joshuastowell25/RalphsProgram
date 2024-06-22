@@ -2,7 +2,7 @@ import copy
 import random
 from domain.Datapoint import Datapoint
 from domain.Stat import Stat
-from utils import enum
+from utils.data_types import enum
 from calculation import calculateCumulativeTotal
 
 positions = enum(LONG="LONG", SHORT="SHORT", FLAT="FLAT")

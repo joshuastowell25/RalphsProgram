@@ -1,7 +1,7 @@
 from typing import List
 import abc
 import domain
-from utils import enum
+from utils.data_types import enum
 from domain.Datapoint import Datapoint #from the file import the class
 
 DataSourceType = enum(OFFLINE="OFFLINE", MARIADB="MARIADB", BIGQUERY="BIGQUERY")

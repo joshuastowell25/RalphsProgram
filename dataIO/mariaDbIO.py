@@ -3,8 +3,8 @@ from datetime import datetime
 from typing import List
 from data_connectors.mariaDb import getDbConnection, load_datapoints, writeDatumToDatabase
 from domain.Datapoint import Datapoint #from the file import the class
-import utils
-from constants import DATA_PATH
+from utils import screen_tools
+from utils.constants import DATA_PATH
 
 def get_data():
     companyName = input("What data file do you want to use? \n")
@@ -23,7 +23,7 @@ def getDbConnection():
         dbConnection = getDbConnection(companyName)
         if dbConnection is None:
             print("Company name not in database: " + companyName)
-    utils.clearTerminal()
+    screen_tools.clearTerminal()
     return dbConnection
 
 def getDatapointsFromDatabase(dbConnection = None):

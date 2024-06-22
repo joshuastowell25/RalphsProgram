@@ -1,7 +1,6 @@
-import constants
-import utils
 from domain.System import System
 from domain.Systems import Systems
+from utils import constants, screen_tools
 
 #Lists the names of the saved systems so the user can select one to open
 def listSavedSystems():
@@ -26,12 +25,12 @@ def showSetup(setup):
 
 def keyContinue():
     input("\nPress any key to continue...")
-    utils.clearTerminal()
+    screen_tools.clearTerminal()
 
 #displays the commands for the systems menu. 
 #arg1: systems: Given to the systems menu for printing
 def enterSystemsMenu(systems: Systems):
-    utils.clearTerminal()
+    screen_tools.clearTerminal()
     command = 0
     print("Welcome to the systems menu. Please select from the following options:")
     while command != 'q':

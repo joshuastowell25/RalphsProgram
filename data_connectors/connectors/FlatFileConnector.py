@@ -3,8 +3,7 @@ from data_connectors.connectors.ConnectorInterface import DataConnector, DataSou
 import domain
 from dataIO import getDataFromFile
 import os
-import constants
-
+import utils.constants as constants
 
 class OfflineFlatFileDataSource(DataConnector):
     dataSourceType: DataSourceType = DataSourceType.OFFLINE
@@ -18,7 +17,7 @@ class OfflineFlatFileDataSource(DataConnector):
     def getData(self) -> List[domain.Datapoint]:
         companyChoices = os.listdir(constants.DATA_PATH)
         print(f"data file choices are: {companyChoices}")
-        companyName = input("What data file do you want to use? \n")
+        companyName = input("What data file do you want to use? \n").replace(".csv","")
         datapoints = getDataFromFile(companyName+".csv")
         print(f"Loaded {len(datapoints)} datapoints from {companyName}.csv")
         return datapoints

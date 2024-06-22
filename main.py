@@ -2,12 +2,13 @@
 import os, sys, traceback
 import shutil
 
-import utils
+from utils.screen_tools import clearTerminal
 from domain.Stat import Stat
 from domain.Datapoint import Datapoint
 from domain.Systems import Systems
 from systems import getSystems, enterSystemsMenu
 from data_connectors import connector_utils
+from utils import constants
 
 # gets the number of lines in the terminal
 def screenHeight():
@@ -67,7 +68,7 @@ def main():
         if command == 'q':
             return
         elif command == 'c':
-            utils.clearTerminal()
+            clearTerminal()
             datapoints: list[Datapoint] = datasource.getData()
             systems.setDatapoints(datapoints)
             currentLine = len(systems.datapoints) - screenHeight()
@@ -89,7 +90,7 @@ def main():
             printStats(systems)
         elif command == 'r':  # Restart
             systems.clearSystems()
-            utils.clearTerminal()
+            clearTerminal()
             main()
         elif command == 's':
             enterSystemsMenu(systems)
@@ -98,12 +99,8 @@ def main():
 
 if __name__ == "__main__":
     try:
-        utils.clearTerminal()
+        clearTerminal()
         main()
     except Exception as e:
-        print(f"Error: {e}")
-        exc_type, exc_obj, exc_tb = sys.exc_info()
-        fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        print(exc_type, fname, exc_tb.tb_lineno)
-        print(traceback.format_exc())
+        constants.LOGGER.log(err=e)
         input("There was an Error. Press Enter to Exit...")

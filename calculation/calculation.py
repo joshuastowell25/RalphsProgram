@@ -1,5 +1,5 @@
 from data_connectors.mariaDb import loadMaColumn, saveColumn
-from utils import enum
+from utils.data_types import enum
 
 MaTypes = enum(RalphStyle = 1, NormalStyle = 2)
 maType = MaTypes.RalphStyle #The desired moving average type

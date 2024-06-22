@@ -1,7 +1,7 @@
 import abc
 from domain.Datapoint import Datapoint
 from domain.System import System
-from utils import enum
+from utils.data_types import enum
 
 class Systems:
     dbConnection = None
